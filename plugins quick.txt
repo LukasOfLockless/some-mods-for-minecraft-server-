@@ -1,4 +1,6 @@
 bStats
+demondragonkings.jar
+eat.jar
 heal.jar
 helloworld.jar
 ViaBackwards

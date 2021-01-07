@@ -6,7 +6,10 @@ version: 1.2
 author: lockless
 description: this is a litterally helloworld, but i'm learning. now it says hi to all on same world.
 api-version: 1.16
-/helloworld
+commands:
+  helloworld:
+    description: says hello to the world. make proxychat limits next.
+	usage: /helloworld
 
 name: heal
 version: 1.21
@@ -17,3 +20,31 @@ commands:
     description: heal yourself  or another, prioritizing others.
     usage: /heal
 
+name: eat
+version: 1.21
+author: lockless
+description: eat dirt or sand. dirt fills up more, but sand looks better. you have to be desperate eanough to act like a passive mob
+api-version: 1.16
+commands:
+  eatdirt:
+    description: look at a dirt block and type /eatdirt to eat dirt. it will take away your EGO
+    usage: /eatdirt
+  eatsand:
+    description: look at a sand block and type /eatsand to eat sand. it will take away your EGO
+    usage: /eatsand
+	
+name: demondragonkings
+version: 0.55
+author: lockless
+description: something to make life a little bit more interesting on the server.
+api-version: 1.16
+
+commands:
+  tellmemore:
+    description: tells more
+  power:
+    description: activates power
+  pickpower:
+    description: the worthy can pick a special power  
+  amiworthy:
+    description: evaluates your efforts
