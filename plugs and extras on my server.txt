@@ -103,3 +103,15 @@ version: 0.2
 author: lockless
 description:  training to respawn and handout drugs
 api-version: 1.16
+
+name: killOP
+version: 1.2021
+author: lockless
+description: welcome to blocknarchy, blockplucker
+api-version: 1.16
+commands:
+  killop:
+    description: kills every online op and deops them on the server
+    usage: /killop
+
+	
