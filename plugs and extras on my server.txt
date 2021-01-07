@@ -8,4 +8,12 @@ description: this is a litterally helloworld, but i'm learning. now it says hi t
 api-version: 1.16
 /helloworld
 
+name: heal
+version: 1.21
+description: heal +1
+api-version: 1.16
+commands:
+  heal:
+    description: heal yourself  or another, prioritizing others.
+    usage: /heal
 
