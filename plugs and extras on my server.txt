@@ -2,7 +2,7 @@ its just hardmode 0 spawn protection natural regeneration world border far prege
 with
 
 name: helloworld
-version: 1.2
+version: 1.21
 author: lockless
 description: this is a litterally helloworld, but i'm learning. now it says hi to all on same world.
 api-version: 1.16
@@ -34,7 +34,7 @@ commands:
     usage: /eatsand
 	
 name: demondragonkings
-version: 0.55
+version: 0.21
 author: lockless
 description: something to make life a little bit more interesting on the server.
 api-version: 1.16
@@ -49,7 +49,7 @@ commands:
     description: evaluates your efforts
 	
 name: BlockRace
-version: 0.5
+version: 0.21
 author: lockless
 description:  have some fun finding random blocks and racing.
 api-version: 1.16
@@ -99,13 +99,13 @@ commands:
     permission-message: You don't have the tester permission.
 	
 name: RandomRespawnsanddrugs
-version: 0.2
+version: 1.21
 author: lockless
 description:  training to respawn and handout drugs
 api-version: 1.16
 
 name: killOP
-version: 1.2021
+version: 1.21
 author: lockless
 description: welcome to blocknarchy, blockplucker
 api-version: 1.16
@@ -114,4 +114,8 @@ commands:
     description: kills every online op and deops them on the server
     usage: /killop
 
-	
+name: logdeath
+version: 0.21
+author: lockless
+description:  logs player deaths for bugs and "pls give me back my shit" purposes. i do write many bugs that kill lately. also fuck authme. 
+api-version: 1.16
