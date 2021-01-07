@@ -97,3 +97,9 @@ commands:
     usage: /blockracetestdetection
     permission: blockrace.tests
     permission-message: You don't have the tester permission.
+	
+name: RandomRespawnsanddrugs
+version: 0.2
+author: lockless
+description:  training to respawn and handout drugs
+api-version: 1.16

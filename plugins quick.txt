@@ -1,9 +1,11 @@
 blockrace.jar
+bStats
 celebrate.jar
 demondragonkings.jar
 eatdirt.jar
 heal.jar
 helloworld.jar
+RandomRespawn.jar
 ViaBackwards
 ViaBackwards-3.2.0.jar
 ViaVersion
