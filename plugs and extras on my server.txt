@@ -1,1 +1,11 @@
-its just hardmode
+its just hardmode 0 spawn protection natural regeneration world border far pregenerated chunks
+with
+
+name: helloworld
+version: 1.2
+author: lockless
+description: this is a litterally helloworld, but i'm learning. now it says hi to all on same world.
+api-version: 1.16
+/helloworld
+
+
