@@ -1,6 +1,7 @@
-bStats
+blockrace.jar
+celebrate.jar
 demondragonkings.jar
-eat.jar
+eatdirt.jar
 heal.jar
 helloworld.jar
 ViaBackwards
