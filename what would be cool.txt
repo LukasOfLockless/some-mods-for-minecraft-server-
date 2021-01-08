@@ -1,0 +1,135 @@
+cool if i made /tavern 
+like...
+if there is a campfire close and its covered on 3 sides (south north west east) but the top ventilates
+and if the tavern is an actually built structure... 
+then the builder can go ahead and /tavern create "nameofthetavern" or like "name of the tavern"
+and what this do is allow the builder to return to tavern using /tavern.
+idk. i liked taverns in world of warcraft. it was like a meeting spot of my liking. every player is linked to  one tavern at all times. 
+/tavern cooldown 60minutes. vanilla af
+maybe even yoink hearthstone idea by making it that when the builder makes the tavern he has to hold block in his hand
+/tavern can only be called with that block in hand
+that block gets named by the name of the tavern then
+need to test naming blocks in vanilla. is it like gay or smt.
+oh and just holding the block wont tp. i think you need to visit the tavern and do "/tavern link" or smt
+/tavern cast time 10 seconds gotta stay still and out of combat. 
+taverns can be destroyed
+tavern gets dead when owner dies
+all linked get unlinked
+smbd else can still become owner of that tavern
+killing the campfire will kill the tavern too. lemme make on thing clear. this is WONKY
+
+cool if i made /point
+like...
+deep rock galactic four drunken dwarves go pointing lazers all the time. need to learn particles.
+might be easier to communicate
+
+corpses on death
+and fucking souls or some shit
+setmaxhp(10 halfhearts) if player has no souls
+need DB and test how 10hp looks in ui
+
+disconnect player but the entity stays
+with inventory and all.
+can lose all your shit while afk.
+i know that would hurt. 
+
+/friend
+like hold a compass and do /friend
+that compass always lead to you. give that compass to somebody and tell them that you are their friend now. 
+
+proximity chat.
+im tired of unrelated overlaping spam so limit message sent radius. like filter normal onchat to only send to ppl in range and give directional queues or smt
+config normal-radius shout-radius whisper-radius
+silence logins and logouts for immersion
+deaths too.
+achievements tho... this gives me an idea about BOND
+
+/mail
+i need to do this somehow
+is this another one that needs a DB ?
+i feel excited using a DB on every ocasion. 
+/mail casting time :D 1 second for every character. what's the limit?
+how to handle long mails?
+5minutes + 1minute per 1k blocks in distance between sender and receiver for arrival time
+must've used that bookstand thing atleast once to send letters. 
+
+want manhunt minigame
+but rly do i wanna flex on others this much? lol
+
+
+
+this is the notherfucking pidgeon server and there's no pidgeon plugins? 
+what if players can send out loved birbs on trades. 
+like...
+urhg. i want that 1.17 patch so bad
+trade parrot can hold a stackworth or like 64 uniques
+baaaaags
+"/trade add" to fling stuff out of the players hand into the birb inventory
+"/trade request <message> <to player>" birb flies like /mail or smt. idk
+"/trade pay" trade receiver gives shit to birb
+"/trade yes" birb drops inventory
+"/trade no" birb returns to owner
+and no players without a parrot cannot send trade requests lol
+
+kubrick is awesome
+/monolith is a fucking obsidian thing
+you know those flash games where you enter a code to go to a specific level? imagine that with minecraft teleports. how does this break /tavern?
+how do players get the code
+another DB <3
+monoliths  can be destroyed
+
+BONDS
+idk. like how much of the game you played throught with somebody close. the every achievement you get near smbd the bond between the two increments. how BOND can be used in unison with /heal?
+bring ppl back to life  using BOND and shit.
+
+Lesson timeout. 
+tempban 45 minutes after death
+just. people need to chill after dying imho.
+dying isnt supposed to be a common part of the game
+it's supposed to mean something. 
+
+
+what the fuck is demondragonkings all about?
+nw king n king neking
+w king spawn king e king
+sw king s king se king
+but like max 4 kings or queens at a time
+motherfucking overworld feudal hierarchys all about them prefix in player displayed name like a fucking faction or smt
+but i dont like the faction servers. they dont tell any story at all like its all about economy and fuck economy and fuck pay2win servers
+nether devil is close to 00, nether demon is far 
+two dragons for the nether.
+
+battle ambience. 
+like https://www.youtube.com/watch?v=NfiFhQ8W7OU&ab_channel=Musicof40K
+spam at steve's headphones with explosions but in a classy way pls.
+capture the flags events would be coool. or king of the hill i dont know
+
+become a fish/dog/horse for roleplay purposes like curses or someshit. idk
+
+i wanna fuckup vanilla sleeping
+when player lays down in bed they can heal to max in a nights timeframe
+2 minutes of laying in bed and not chatting makes a player not insomniac anymore
+NO FUCKING SKIPPING THE NIGHT WEAK SHIT ON MY SERVER
+
+mixtape
+/mixtape record
+	up to 1 minute listening to snotblock sounds
+	sneak to stop
+	can record on top of previous up to say 8 layers of overlay
+/mixtape clear
+	burns the mixtape for it wasnt hot enough
+/mixtape play
+	replay the music
+	put some note particles overplayer head
+	
+	
+why slave away digging on your own when you can have serverside slaves?
+how to put baritone on mf server. that might be the biggest challange with the sweetest achievement.
+
+
+
+
+
+
+ 
+

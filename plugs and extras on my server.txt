@@ -1,5 +1,7 @@
 its just hardmode 0 spawn protection natural regeneration world border far pregenerated chunks
 with
+im using spigot-api and eclipse as an ide
+versions only 1.21 or 0.21. 1-works 0-needs testing or broken for sure
 
 name: helloworld
 version: 1.21
