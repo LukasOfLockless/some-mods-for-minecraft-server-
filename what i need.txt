@@ -1,1 +1,5 @@
 hosting on .xyz or something cheap. hope they got a domain link to ip service going on because that shit i neeeeeeeeeeeeeeeed
+
+need to learn particles
+need to learn player controlled mobs for funny fish
+need to learn how playSound() works
