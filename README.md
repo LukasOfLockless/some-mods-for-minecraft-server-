@@ -57,6 +57,10 @@ so the concept is that you have to build a tavern and the make some tevernblocks
 creeper griefing is annoying and frustrating? if you answer yes to that question I am judging you on a personal level. what do you do when life gives you lemons? 
 /killquest is an idea that you can kill all the hostile mobs in a chunk. the reward is a use of some cool command to add a description to some item as well a permantent and irreversable change in hostile mobs spawning there. imma go ahead and list them : creeper, zombies, skeletons, spider. slaughter like a stack for each type. or an omega 1024 stack of all combined. quest complete. all participants get a reward.
 
+PIDGEON SERVER AND NO PIDGEON PLUGIN?!?!?!
+k.
+
+
 why haven't i done it yet? time is a limited resource and i like to nap. 
 last edit on 2021-01-15
 
