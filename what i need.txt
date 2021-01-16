@@ -1,5 +1,9 @@
-hosting on .xyz or something cheap. hope they got a domain link to ip service going on because that shit i neeeeeeeeeeeeeeeed
+need a domain on .xyz or something cheap.
+got a domain, thx pumpkinman.
 
 need to learn particles
-need to learn player controlled mobs for funny fish
-need to learn how playSound() works
+is fireowrk a particle?
+
+need to learn how playSound() works.
+learnt. Player.PlaySound(); args go as a location where u want to seethe thing and some two args that dont matter
+do some pvp
