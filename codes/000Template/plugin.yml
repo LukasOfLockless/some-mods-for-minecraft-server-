@@ -1,0 +1,17 @@
+main: lockless.pack.Main
+name: deathnote
+version: 0.21
+author: lockless
+description: describe it 
+api-version: 1.16
+
+commands:
+  packcmd:
+    description: starts celebrating
+    usage: /packcmd
+    permission: packcmd.use
+    permission-message: You don't have permission.
+permissions:
+  packcmd.use:
+    description: packcmd command
+    default: true
