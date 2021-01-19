@@ -1,29 +1,20 @@
 package lockless.pack;
 
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;  // Import the IOException class to handle errors
 
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
 
-public class Main extends JavaPlugin implements Listener{
+public class Main extends JavaPlugin{
 
 	//still debugging inventory == null
-	private boolean logToConsole=false;
 	private File pluginFolderPath;
     private String foldername = "testssss";
  
@@ -79,19 +70,19 @@ public class Main extends JavaPlugin implements Listener{
             while ((line = br.readLine()) != null) {
                 readread +=line;//System.out.println(line);
             }
-
+            br.close();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
         	e.printStackTrace();
         }
-        return readread;
+       // return readread;
 		
 	}
 	private void writeSomething()
 	{
-		rng = Math.random()*6969;
+		double rng = Math.random()*6969;
 		try{
 			FileWriter writer = new FileWriter(pluginFolderPath+File.separator+"report"+rng+".txt");
 		    writer.write("something"+rng);
@@ -117,7 +108,7 @@ public class Main extends JavaPlugin implements Listener{
 	@Override
 	public void onDisable()
 	{
-		system.out.println("bye bye");
+		System.out.println("bye bye");
 		
 	}
 
