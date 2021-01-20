@@ -11,70 +11,30 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Creature;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 
-//todo
-import org.bukkit.event.world.WorldEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.event.raid.RaidEvent;
-import org.bukkit.event.raid.RaidTriggerEvent;
 
-//test
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Creature;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 public class Main extends JavaPlugin implements Listener{
 
-	private File pluginFolderPath;
-	private String foldername="killquest";
-	private String SaveFileName="killquestWorld";
-	private double checkTotalQuestRadius=15000;
-	private double onePartAffectArea=1000;
-
-	private int lookfilteredMobs=0;
-	private int lookWrongWorldfilteredout=0;
-	
-	
-	private int currentlyClear=0;
-	private int currentlyRunning=0;
-	private int chaosOfNature=0;
-	private int assumedSize;
-	private boolean[] killquestClearBool;//i have the brain capacity to code this, not that
-	private int[][] killquestQuests;//i have the brain capacity to code this, not that
-	private ArrayList <Player> killquestQuesters;//i have the brain capacity to code this, not that
-	private ArrayList <QuesterAndScore> ScrollOfQuestingKnights;
 	
 	private class QuesterAndScore
 	{
@@ -90,6 +50,7 @@ public class Main extends JavaPlugin implements Listener{
 			name = p.getName();
 			currentIndex = areaIndex;
 		}
+		
 		public void AddScore(int index , int addScore) 
 		{
 			if(currentIndex == index) 
@@ -109,19 +70,120 @@ public class Main extends JavaPlugin implements Listener{
 		
 		
 	}
+	private class raidCoordinate
+	{
+		double x;
+		double z;
+
+
+		public raidCoordinate(double setX,double setZ)
+		{
+			x = setX;
+			z = setZ;
+		}
+		public String getString() 
+		{
+			return (""+(int)x+" "+(int)z+"");
+		}
+	}
+	private class raiderIsTargetingYouCount
+	{
+		Player you;
+		int count=0;
+		public  raiderIsTargetingYouCount(Player p) 
+		{
+			you = p;
+			count = 0;
+		}
+		public void plusplus() 
+		{
+			count++;
+		}
+		public int getCount() 
+		{
+			return count;
+		}
+		public String name() 
+		{
+			return you.getName();
+		}
+	}
+	private class NamedAreas
+	{
+		public int index;
+		public String name;
+		public NamedAreas(int i, String str) 
+		{
+			index= i;
+			name=str;
+		}
+		
+	}
+	
+//pls dont change these top two ones or the last settigns will get t otal scuffed	
+	private double checkTotalQuestRadius=15000;
+	private double onePartAffectArea=1000;
+	//floders
+	private File pluginFolderPath;
+	private String foldername="killquest";
+	private String SaveFileKillquestAreasCleared="killquestWorld";
+	private String SaveFileVictory="VictoryList";
+	private String fileNameAreaNames="areanames";
+//debug shit
+	private int lookfilteredMobs=0;
+	private int lookWrongWorldfilteredout=0;
+	private int currentlyClear=0;
+	private int currentlyRunning=0;
 	
 	
-	//private Map<Integer,Boolean> areaClear;
-	//private Map<Integer, ArrayList<Integer> > killquests;//can i use it like this instead of that i mean im not retarded but ">>"!??!? 
-	//private Map<Integer, Player> killquesters;
+	private int assumedSize;
+	private boolean[] killquestClearBool;//i have the brain capacity to code this, not that
+	private int[][] killquestQuests;//i have the brain capacity to code this, not that
+	private ArrayList <Player> killquestQuesters;//i have the brain capacity to code this, not that
+	private ArrayList <QuesterAndScore> ScrollOfQuestingKnights;
 	
-	/*
-	private List<Integer> areaSpooders;
-	private List<Integer> areaZomboz;
-	private List<Integer> areaDingos;
-	private List<Integer> areaNeets;
-	*/
+	
+	
+//chaos is raid or some quaziloreshit	
+	private int chaosOfNature=0;
+
+	
+	
+	//TODO toggle back to TRue when Raid is dealt with
 	private boolean canSpawnRAID = true;
+	private int[] raiderSpawnTypesData;
+	private int raiderSpawnTypesIndex=0;
+	
+	private int[] spawnMobAmounts;
+	private ArrayList<Location> raidSpawnLocations;//where raiders spawn, in the midst of players if desperate for alocation.
+	private ArrayList<Creature> raiders;//these get AI turned of later
+	private ArrayList<Creature> raidersThatRide;//these get AI turned on on spawn
+	private raidCoordinate lastRaidSpot;//for help turning the canraid back true
+	//TODO hentai the dead ones
+	private ArrayList<Player> raidInitialTargets;//living players
+
+	private ArrayList<raiderIsTargetingYouCount> debugTargetingRng;//used in multiple methods, fuck passing lsitsthem around it var now
+	private World mainWorld;//getWorld(0)
+	private BukkitRunnable raidSpawningTask; //spawns shit calls raider or ridingraider
+	private BukkitRunnable raidTargetingTask; // turns on ai for some
+
+	private int simplierRaiderCount=0; //used in runnable
+	private int simplierRaiderIndex=0; //used in runnable
+	
+	
+	
+	//TODO make sure these are used.
+	private boolean namingsomeAreasChanged=false;//when is win
+	private boolean namingsmbdCouldNameIt=false;
+	private Player namingTheOneWhoNames;
+	private int namingAreaIndex=-1;
+
+
+	private ArrayList<NamedAreas> namedAreaList;//wins from players after the bigdude named them
+	
+	
+	
+	
 	
 
 	public void onEnable() {
@@ -137,7 +199,7 @@ public class Main extends JavaPlugin implements Listener{
 		//killquesters = Collections.emptyMap();
 		
 		doSomeLoad();
-		
+		DoLoadAreaNames();
 		
 		getServer().getPluginManager().registerEvents(this, this);
 		System.out.println("killquest enabled");
@@ -145,7 +207,8 @@ public class Main extends JavaPlugin implements Listener{
 	
 	public void onDisable() 
 	{
-		doSomeSave();
+		doSaveAreaBooleans();
+		doSaveAreaNames();
 		System.out.println("killquest saving data and disabling");
 	}
 	
@@ -179,6 +242,7 @@ public class Main extends JavaPlugin implements Listener{
 				return true;
 			}
 		}
+		/* tests worked
 		else if (label.equalsIgnoreCase("turret")) 
 		{
 			
@@ -187,16 +251,17 @@ public class Main extends JavaPlugin implements Listener{
 	                
 	            
             
-	        return false;
+	        return true;
         }
-	            
+	            */
 		return false;
 	}
 	
 	
-    
-	LivingEntity testentity;
-	Player testplayer;
+    //TODO see how much health the snowman actually has vs the raiders with no sethealth done on them
+	LivingEntity testentity;//testvar
+	Player testplayer;//testvar
+	@SuppressWarnings({ "unused", "deprecation" })
     private void CommandSpawns(CommandSender sender, Command command, String label, String[] args) 
     {
     	if(sender instanceof Player) 
@@ -223,16 +288,13 @@ public class Main extends JavaPlugin implements Listener{
        
             Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() 
             {
-                @SuppressWarnings("deprecation")
-                public void run() {
+                public void run() 
+                {
                     Player anyplayer = (Player) testplayer;
                     testentity.getTarget();
                     testentity.setTarget(anyplayer);
                     testentity.launchProjectile(Snowball.class);
                 }
-                   
-                           
-               
             },  60);
         }
     	else 
@@ -280,86 +342,26 @@ public class Main extends JavaPlugin implements Listener{
            
                 Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() 
                 {
-                    @SuppressWarnings("deprecation")
-                    public void run() {
+                	public int derp=0;
+                    public void run() 
+                    {
                         Player anyplayer = (Player) testplayer;
                         testentity.getTarget();
                         testentity.setTarget(anyplayer);
                         testentity.launchProjectile(Snowball.class);
-                    }
-                       
-                               
-                   
-                },  60);
+                    }},  60);
     			
+                
+                
     		}
     		
     	}
     }
 	
-	private int[] spawnMobAmounts;
-	private ArrayList<Location> raidSpawnLocations;
-	private ArrayList<Mob> raiders;
-	private raidCoordinate lastRaidSpot;
-	private ArrayList<Player> raidInitialTargets;
-	private BukkitRunnable raidSpawningTask;
-	private BukkitRunnable raidTargetingTask;
-	private BukkitRunnable raidEndCheckTask;
-	private BukkitRunnable raidNightmare;
-	private World mainWorld;
-	//.spawnEntity(l, EntityType.ARMOR_STAND);
-	private class raidCoordinate
-	{
-		double x;
-		double z;
+	
 
-
-		public raidCoordinate(double setX,double setZ)
-		{
-			x = setX;
-			z = setZ;
-		}
-		public String getString() 
-		{
-			return (""+(int)x+" "+(int)z+"");
-		}
-	}
 	//logic
-	private void SpawnARaider(EntityType type,double x, double z) 
-	{
-		mainWorld.spawnEntity(null, type);
-	}
 	
-	private void SpawnARidingRaider(EntityType type,double x, double z) 
-	{
-		
-	}
-	
-	private Location wishWooshXZisLocation(double x, double z) 
-	{
-		World w;
-		if(mainWorld !=null) 
-		{
-			w= mainWorld;
-		}
-		else 
-		{
-			w = getServer().getWorld("world");
-			if(w == null) 
-			{
-				w = getServer().getWorlds().get(0);
-				System.out.println("not WORLD but "+w.getName());
-			}
-			if(w!=null) 
-			{
-				mainWorld=w;
-			}
-			
-		}
-		
-		double y = w.getHighestBlockYAt((int)x,(int)z);
-		return new Location(w,x,y,z);
-	}
 	
 	private void spawnChaos(int tier , ArrayList<Player> targets) 
 	{
@@ -369,6 +371,7 @@ public class Main extends JavaPlugin implements Listener{
 			System.out.println("cant spawn raid, there might be "+raiders.size()+" around "+lastRaidSpot.getString() );
 			return;
 		}
+		
 		raidCoordinate  middle = new raidCoordinate(0,0);
 		for(Player p : targets) 
 		{
@@ -404,21 +407,330 @@ public class Main extends JavaPlugin implements Listener{
 			System.out.println(" sides of Chaos Atm "+raidSpawnLocations.size());
 		}
 		
-		spawnMobAmounts = getRaidMobAmounts(tier);
-		raiders = new ArrayList<Mob>();
+		int actualTier = targets.size() + raidSpawnLocations.size();
+		if (actualTier>9) 
+		{
+			actualTier=9;
+		}
+		chaosOfNature-=actualTier*10;
+		if(chaosOfNature <0) {chaosOfNature=0;}
+				
+		spawnMobAmounts = getRaidMobAmounts(actualTier);
+		
+		raiders = new ArrayList<Creature>();
+		raidersThatRide = new ArrayList<>();
 		canSpawnRAID =false;
+		
 		raidInitialTargets = targets;
+		
+		debugTargetingRng = new ArrayList<raiderIsTargetingYouCount>();
+		for(Player p: targets) 
+		{
+			debugTargetingRng.add(new raiderIsTargetingYouCount(p));	
+		}
+		
+		
+		//ok now start spawning shit
+		
+		int totalSpawns = spawnMobAmounts[0] + spawnMobAmounts[1] + spawnMobAmounts[2] + spawnMobAmounts[3] + spawnMobAmounts[4] + spawnMobAmounts[5] + spawnMobAmounts[6] + spawnMobAmounts[7];
+		
+		raiderSpawnTypesData = new int[totalSpawns];
+		int dumbi=0;
+		for(int i=0;i<spawnMobAmounts.length;i++) 
+		{
+			for(int u=0;u<spawnMobAmounts[i];u++) 
+			{
+				if(dumbi >= totalSpawns) 
+				{
+					break;
+				}
+				raiderSpawnTypesData[dumbi]=i;
+				dumbi++;
+			} 
+		}
+		
+		
+		raidStartSpawning();
+					
+		 
+	}
+	
+	
+	private void addToScore(Integer key, EntityType type) 
+	{
+		
+		if(killquestClearBool[key]==true) 
+		{
+			//already done with the quest here
+			return;
+		}
+		if(killquestQuests[key]==null) 
+		{
+			killquestQuests[key] = new int[4];
+		}
+		
+		if(type == EntityType.ZOMBIE || type ==  EntityType.ZOMBIE_VILLAGER|| type == EntityType.HUSK|| type ==EntityType.DROWNED ) 
+		{
+			killquestQuests[key][1]++;
+		}
+		if(type == EntityType.CREEPER ) 
+		{
+			killquestQuests[key][0]++;
+		}
+		if(type == EntityType.SPIDER ) 
+		{
+			killquestQuests[key][2]++;
+		}
+		if(type == EntityType.SKELETON  ||type == EntityType.STRAY) 
+		{
+			killquestQuests[key][3]++;
+		}
+		if(checkQuestComplete(key)) 
+		{
+			Win(key);
+		}
+	}
+	
+	private void SpawnARaider(EntityType type,double x, double z) 
+	{
+		Location spawnHere = rngSpawnForRaiders(x,z,5);
+		Creature raider=(Creature)mainWorld.spawnEntity(spawnHere, type);
+		raider.setTarget((LivingEntity)rngTargeting());
+		
+		
+		
+		
+		System.out.println("raider dumb "+raider.hasAI()) ;
+		if(raider.hasAI()==false) 
+		{
+			raider.setAI(true);			
+		}
+		
+		
+		raiders.add(raider);
+	}
+	
+	private void SpawnARidingRaider(EntityType type,double x, double z) 
+	{
+		EntityType ravogaroType = EntityType.RAVAGER;
+		Location spawnHere = rngSpawnForRaiders(x,z,5);
+		Creature ravagaro = (Creature)mainWorld.spawnEntity(spawnHere, ravogaroType);
+		Creature rider = (Creature)mainWorld.spawnEntity(spawnHere, type);
+		LivingEntity tartget  =(LivingEntity)rngTargeting();
+		rider.setTarget(tartget);
+		ravagaro.setTarget(tartget);
+		ravagaro.addPassenger(rider);
+		
+		System.out.println("rider dumb "+rider.hasAI()+ " ravager dumb "+ ravagaro.hasAI()) ;
+		
+		
+		
+		raidersThatRide.add(rider);
+		raidersThatRide.add(ravagaro);
 		
 		
 	}
 	
+	private Location rngSpawnForRaiders(double x, double z, int Radius) 
+	{
+		int rng_x = (int)x;
+		int rng_z = (int)z;
+		
+		if(Radius>0)
+		{
+			rng_x = rng_x - (int)(Math.random() * Radius * 2)-Radius;
+			rng_z = rng_z - (int)(Math.random() * Radius * 2)-Radius;
+		}
+		
+		Location location = mainWorld.getHighestBlockAt(rng_x, rng_z).getLocation();
+		location.setY(location.getY()+1);
+		return location;
+	}
+	
+
+	private void raidStartSpawning() 
+	{
+		System.out.println("spawning raiders");
+		raidSpawningTask =new BukkitRunnable() {
+			
+	        	public void run() 
+	        	{
+	        		if(raiderSpawnTypesIndex >= raiderSpawnTypesData.length) 
+	        		{
+	        			System.out.println("done spawning "+raiderSpawnTypesData.length);
+	        			raidStartTargeting();
+	        			cancel();
+	        		}
+        			int currentlySpawning =raiderSpawnTypesIndex;
+	        		Location loca = raidSpawnLocations.get((int)(Math.random()*raidSpawnLocations.size()));//spawn
+	        		if(currentlySpawning<5) 
+	        		{
+	        			SpawnARaider(wishWooshIntisEntityType(raiderSpawnTypesData[currentlySpawning]), loca.getX(), loca.getZ() );
+	        			raiderSpawnTypesIndex++;
+	        		}
+	        		else 
+	        		{
+	        			SpawnARidingRaider(wishWooshIntisEntityType(raiderSpawnTypesData[currentlySpawning]), loca.getX(), loca.getZ() );
+	        			raiderSpawnTypesIndex++;
+	        		}
+	        		
+	        	}
+        	};
+ 		// 20L = 1 Second
+        	
+    	long rng = (long)(Math.random()*1000);
+    	raidSpawningTask.runTaskTimer(this,1L, rng);
+	}
 	
 	
+	private Player rngTargeting() 
+	{
+		int rng = (int)(raidInitialTargets.size()*Math.random());
+		Player target=raidInitialTargets.get(rng);
+		if(target == null) 
+		{
+			target = raidInitialTargets.get(0);
+		}
+		
+		
+		for(raiderIsTargetingYouCount rrr:debugTargetingRng) 
+		{
+			if(rrr.name() == target.getName()) 
+			{
+				rrr.plusplus();
+				break;
+			}
+		}
+		
+		return target;
+	}
+	
+	
+	private EntityType wishWooshIntisEntityType(int in) 
+	{
+		if(in==0) 
+		{
+			return EntityType.PILLAGER;
+		}
+		if(in == 1) 
+		{
+			return EntityType.VINDICATOR;
+		}
+		if(in == 2) 
+		{
+			return EntityType.RAVAGER;
+		}
+		if(in == 3) 
+		{
+			return EntityType.WITCH;
+		}
+		if(in == 4) 
+		{
+			return EntityType.EVOKER;
+		}
+		if(in == 5) 
+		{
+			return EntityType.PILLAGER;
+		}
+		if(in == 6) 
+		{
+			return EntityType.VINDICATOR;
+		}
+		if(in == 7) 
+		{
+			return EntityType.EVOKER;
+		}
+		
+		return EntityType.CAVE_SPIDER;
+	}
+	
+	private Location wishWooshXZisLocation(double x, double z) 
+	{
+		World w;
+		if(mainWorld !=null) 
+		{
+			w= mainWorld;
+		}
+		else 
+		{
+			w = getServer().getWorld("world");
+			if(w == null) 
+			{
+				w = getServer().getWorlds().get(0);
+				System.out.println("not WORLD but "+w.getName());
+			}
+			if(w!=null) 
+			{
+				mainWorld=w;
+			}
+			
+		}
+		
+		double y = w.getHighestBlockYAt((int)x,(int)z);
+		return new Location(w,x,y,z);
+	}
+
+	
+	//runables
+	
+	//single raiders do targeting here
+	private void raidStartTargeting() 
+	{		
+		System.out.println("targetting");
+		simplierRaiderCount=raiders.size();
+		simplierRaiderIndex=0;
+		raidTargetingTask =new BukkitRunnable() {
+	    	public void run() 
+	    	{
+	    		
+	    		if(raiders.get(raiderSpawnTypesIndex)!=null) 
+	    		{
+	    			Creature thatboi = raiders.get(raiderSpawnTypesIndex);
+	    			if(thatboi.hasAI()==false) 
+	    			{
+	    				thatboi.setAI(true);
+	    			}
+	    			if(thatboi.getTarget() == null) 
+	    			{
+	    				thatboi.setTarget(rngTargeting());
+	    			}
+	    		}
+	    		else 
+	    		{
+	    			if(simplierRaiderIndex>=simplierRaiderCount) 
+	    			{
+	    				for(Player p:raidInitialTargets) 
+	    				{
+	    					for(raiderIsTargetingYouCount rrr:debugTargetingRng) 
+	    					{
+	    						if(rrr.name() == p.getName()) 
+	    						{
+	    							p.sendMessage(ChatColor.DARK_RED +"you are targeted by "+rrr.getCount()+" raiders");
+	    							break;
+	    						}
+	    					}
+	    					
+	    				}
+	    				
+	    			}
+	    			System.out.println("raid officially started");
+	    			cancel();
+	    			
+	    		}
+	    		simplierRaiderIndex++;
+	    	}
+    	};
+		// 20L = 1 Second
+    	raidTargetingTask.runTaskTimer(this,1L, 30L);
+	  //Bukkit.getScheduler().runTaskTimer(this, raidSpawningTask,1L, 100L);
+		
+	}
 	
 	private int rng(int min, int max) 
 	{
 		return (int)(Math.random()*(max-min)) +min;
 	}
+	
 	private int[] getRaidMobAmounts(int tier) 
 	{
 		// i think 0 through 6 are pretty vanilla, but 7 -9 are something that i enjoy
@@ -460,7 +772,7 @@ public class Main extends JavaPlugin implements Listener{
 		
 		double AcceptableChaos =Math.sqrt(chaosOfNature/16);
 		p.sendMessage(ChatColor.DARK_RED + "are you ready to take on "+ChatColor.MAGIC +"CHAOS"+ChatColor.RESET+""+ChatColor.DARK_RED+" Lv "+AcceptableChaos);
-		chaosOfNature = (int)(chaosOfNature-1)/2;
+		//chaosOfNature = (int)(chaosOfNature-1)/2;
 		spawnChaos((int)AcceptableChaos,singlePlayerCampaign);
 	}
 	
@@ -474,7 +786,7 @@ public class Main extends JavaPlugin implements Listener{
 			playerOne.sendMessage("you are in killquest location {"+theloca+"}");
 			if (Math.random()>0.5f) //just to fuck with the ux
 			{
-				currentlyClear = QuickMath();				
+				currentlyClear = CountClearAreas();				
 			}
 			playerOne.sendMessage("areas safe " +currentlyClear);
 			
@@ -503,7 +815,6 @@ public class Main extends JavaPlugin implements Listener{
 				ScrollOfQuestingKnights.add(new QuesterAndScore(playerOne, theloca));
 				
 			}
-			//TODO: maybe let the player reset their Killquest location via index.
 		}
 		else 
 		{
@@ -608,13 +919,13 @@ public class Main extends JavaPlugin implements Listener{
 		return true;
 	}
 	
-	
 	private int getLocationsKillQuestIndex(double x , double z) 
 	{
 		//System.out.println("killquest loc? x int is "+((int)((x+checkTotalQuestRadius)/onePartAffectArea))+" total "+(int)(2*checkTotalQuestRadius/onePartAffectArea*2*checkTotalQuestRadius/onePartAffectArea)+"y"+(int)((z+checkTotalQuestRadius)/onePartAffectArea));
 		int theIndexIs = (int)((x+checkTotalQuestRadius)/onePartAffectArea)+(int)(2*checkTotalQuestRadius/onePartAffectArea)*(int)((z+checkTotalQuestRadius)/onePartAffectArea);
 		return theIndexIs;
 	}
+	
 	
 	private boolean checkQuestComplete(int index) 
 	{
@@ -643,10 +954,10 @@ public class Main extends JavaPlugin implements Listener{
 		return true;
 	}
 	
-	//TODO rename
 	
-	private int QuickMath() 
+	private int CountClearAreas() 
 	{
+		
 		int countSome=0;
 		for(int i = 0 ; i<killquestClearBool.length;i++)
 		{
@@ -661,13 +972,21 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private void Win(int index) 
 	{
+		namingAreaIndex=index;
+		String namesOfTheChapter ="";
+		
+		
+		
 		for(Player p : getServer().getOnlinePlayers()) 
 		{
 			if (getLocationsKillQuestIndex(p.getLocation().getX(), p.getLocation().getZ())==index) 
 			{
+				namesOfTheChapter += p.getName()+" ";
 				p.sendMessage("you win");
 			}
 		}
+		String Date = new java.util.Date().toString();
+		
 		killquestClearBool[index] = true;
 		currentlyClear++;
 		System.out.println("Quest Complete!!"+killquestQuests[index][0]+" "+killquestQuests[index][1]+" "+killquestQuests[index][2]+" "+killquestQuests[index][3]+" ");
@@ -684,12 +1003,22 @@ public class Main extends JavaPlugin implements Listener{
 		currentlyRunning =  localCounter;
 		ArrayList<Player> possiblyTargeted= new ArrayList<Player>();
 		int sum = 0;
+		OfflinePlayer[] opl=getServer().getOfflinePlayers();
+		Player biggestScore=opl[0].getPlayer();
+		int maxScore=0;
 		for(QuesterAndScore qs:ScrollOfQuestingKnights) 
 		{
 			if(qs.currentIndex == index) 
 			{
+				
 				possiblyTargeted.add(qs.player);
 				sum += qs.score;
+				if(qs.score>maxScore) 
+				{
+					maxScore = qs.score;
+					biggestScore = qs.player;
+				}
+				
 				qs = new QuesterAndScore(qs.player, index);
 			}
 		}
@@ -702,10 +1031,21 @@ public class Main extends JavaPlugin implements Listener{
 			//target playerswho are still questing here.
 			int tier = possiblyTargeted.size()/2;
 			spawnChaos(tier , possiblyTargeted);
-			
+			chaosOfNature-=sum;			
 		}
-		chaosOfNature-=sum;
+		System.out.println("taking away "+sum+" points of Chaos");
+		
+		namingsmbdCouldNameIt=true;
+		namingTheOneWhoNames=biggestScore;
+		namingAreaIndex=index;
+		
+		
+		//TODO save here
+		RememberTheseKnights(biggestScore.getName(), namesOfTheChapter, Date, index);;
+		
 	}
+	
+	
 	private String Progress(int index) 
 	{
 		int[] checkthis =killquestQuests[index];
@@ -713,18 +1053,28 @@ public class Main extends JavaPlugin implements Listener{
 		int sumTotal=0;
 		for(int i =0;i<checkthis.length ; i++) 
 		{
+			if(checkthis[i]>64) 
+			{
+				sumNormal+=64;
+			}
+			else 
+			{
+				sumNormal+=checkthis[i];
+			}
+			
 			sumTotal+=checkthis[i];
 		}
 		float SmarterProgress=(float)sumNormal/256f;
 		float DumbProgress = (float)sumTotal/1024f;
-		
+		System.out.println("smart ="+SmarterProgress);
+		System.out.println("dumb ="+DumbProgress);
 		if(DumbProgress > SmarterProgress) 
 		{
-			return progressCompiler((int)DumbProgress*9);
+			return progressCompiler((int)(DumbProgress*9));
 		}
 		else 
 		{
-			return progressCompiler((int)SmarterProgress*9);
+			return progressCompiler((int)(SmarterProgress*9));
 		}		
 	}
 	
@@ -743,52 +1093,21 @@ public class Main extends JavaPlugin implements Listener{
 		progressbars[7] = ChatColor.GOLD + "<=== === ==_>";
 		progressbars[8] = ChatColor.GOLD + "<=== === ==::>";
 		
-		return progressbars[progress];
-	}
-	
-	
-	
-	private void addToScore(Integer key, EntityType type) 
-	{
-		
-		if(killquestClearBool[key]==true) 
+		if(progressbars[progress]!=null) 
 		{
-			//already done with the quest here
-			return;
+			return progressbars[progress];			
 		}
-		if(killquestQuests[key]==null) 
+		else 
 		{
-			killquestQuests[key] = new int[4];
-		}
-		
-		if(type == EntityType.ZOMBIE || type ==  EntityType.ZOMBIE_VILLAGER|| type == EntityType.HUSK|| type ==EntityType.DROWNED ) 
-		{
-			killquestQuests[key][1]++;
-		}
-		if(type == EntityType.CREEPER ) 
-		{
-			killquestQuests[key][0]++;
-		}
-		if(type == EntityType.SPIDER ) 
-		{
-			killquestQuests[key][2]++;
-		}
-		if(type == EntityType.SKELETON  ||type == EntityType.STRAY) 
-		{
-			killquestQuests[key][3]++;
-		}
-		if(checkQuestComplete(key)) 
-		{
-			Win(key);
+			return (ChatColor.MAGIC+"<a=gureoa BUG grb-edsaa>");
 		}
 	}
 	
 	
+
 	
 	
 	//event listeners
-	
-	//typefilter/quest completes
 	
 	@EventHandler
 	private void onmobSpawn(EntitySpawnEvent event) 
@@ -798,16 +1117,7 @@ public class Main extends JavaPlugin implements Listener{
 			System.out.println("event missing. WHAT THE FUCK SPIGOT BUKKIT");
 			return;
 		}
-		/*
-		SpawnReason reason = event.getSpawnReason();
-		if(reason != SpawnReason.NATURAL) 
-		{
-			lookAtNotNaturalSpawns++;
-			System.out.println("not naturals");
-			return;
-		}
-		*/
-		
+				
 		
 		if(event.getLocation().getWorld() != getServer().getWorlds().get(0)) 
 		{
@@ -855,7 +1165,6 @@ public class Main extends JavaPlugin implements Listener{
 			try 
 			{
 					
-					// TODO: handle exception
 				if(killquestClearBool[index]==true) 
 				{
 					event.setCancelled(true);
@@ -994,7 +1303,7 @@ public class Main extends JavaPlugin implements Listener{
 			printthis+="\n";
 		}
 		try{
-			FileWriter writer = new FileWriter(SaveFileName);
+			FileWriter writer = new FileWriter(SaveFileKillquestAreasCleared);
 		    writer.write(printthis);
 		    writer.close();
 		} catch (IOException e) {
@@ -1008,7 +1317,7 @@ public class Main extends JavaPlugin implements Listener{
 		//folder checks
 		FolderCreation();
 		System.out.println("killquest loading");
-		File testExist = new File(SaveFileName);
+		File testExist = new File(SaveFileKillquestAreasCleared);
 		try 
 		{
 			
@@ -1076,7 +1385,7 @@ public class Main extends JavaPlugin implements Listener{
 	
 	
 	
-	private void doSomeSave() 
+	private void doSaveAreaBooleans() 
 	{
 		
 		System.out.println("killquest saving");
@@ -1100,7 +1409,7 @@ public class Main extends JavaPlugin implements Listener{
 		try{
 			//savedData.delete();//deleted
 			//replaces it lol
-			File savedData = new File(SaveFileName);
+			File savedData = new File(SaveFileKillquestAreasCleared);
 			
 			FileWriter writer = new FileWriter(savedData);
 		    writer.write(printthis);
@@ -1147,14 +1456,14 @@ public class Main extends JavaPlugin implements Listener{
 		    }
 		}
 		
-		SaveFileName = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld.txt";
+		SaveFileKillquestAreasCleared = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld.txt";
 		
-		if(new File(SaveFileName).exists() == false) 
+		if(new File(SaveFileKillquestAreasCleared).exists() == false) 
 		{
 			try 
 			{
 				
-				FileWriter writer = new FileWriter(new File(SaveFileName));
+				FileWriter writer = new FileWriter(new File(SaveFileKillquestAreasCleared));
 			    writer.write(" ");
 			    writer.close();
 			}catch (IOException e) {
@@ -1166,5 +1475,115 @@ public class Main extends JavaPlugin implements Listener{
 		
 		
     }
+	
+	
+	
+	
+
+	private void RememberTheseKnights(String MainGuy, String TheHelpers, String Date, int index) 
+	{
+		String normalLookingString = "\n"+MainGuy+" and gang "+TheHelpers+" cleared "+index+"\n - "+Date;
+		doSaveAppendToVictory(normalLookingString);
+	}
+	
+	
+
+	private void doSaveAreaNames() 
+	{
+		if(namingsomeAreasChanged==false) 
+		{
+			return;
+		}
+		
+	}
+	
+	private void doSaveAppendToVictory(String appendThis) 
+	{
+		//SaveFileVictory
+	}
+	
+	private void DoLoadAreaNames() 
+	{
+		System.out.println("killquest loading");
+		File testExist = new File(SaveFileKillquestAreasCleared);
+		try 
+		{
+			if(testExist.exists() == false) 
+			{
+				System.out.println("initialLoad cuz not exist on the second check in LOAD");
+				initSaving();
+			}
+		} 
+		catch(NullPointerException e)
+		{
+
+			System.out.println("initialLoad cuz null exception");
+			initSaving();
+			
+		}
+		
+
+				
+		//why map anything,array it
+		
+		try{
+			FileReader reader = new FileReader(testExist);
+			BufferedReader buffer=new BufferedReader(reader); 
+			String line="";
+			
+			int lineCount=0;
+			int AreaIndex=-1;
+			String AreaName="nope";
+			
+			while( (line=buffer.readLine()) != null) 
+			{
+				System.out.println("do smt with :"+line);
+				if(lineCount%4==0) 
+				{
+					//index
+					AreaIndex = PrepStringToParsing(line);  
+				}
+				else if(lineCount%4==1)
+				{
+					//name
+					AreaName = line;
+					namedAreaList.add(new NamedAreas(AreaIndex,AreaName));
+				}
+				lineCount++;
+			}
+			
+			buffer.close();
+		    reader.close();
+		}
+		catch (IOException e) 
+		{
+		   System.out.println("well that print writer didnt work "+e.toString());
+		}
+	}
+	
+	
+	
+	private int PrepStringToParsing(String unprep) 
+	{
+		char[] chars= new char[unprep.length()];
+		for(int i =0; i<unprep.length();i++) 
+		{
+			chars[i] = unprep.charAt(i);
+		}
+		int parsed=0;
+		for(int i =0; i<chars.length;i++) 
+		{
+			if(chars[i] == ((char)i)) 
+			{
+				parsed += i * (int)Math.pow(10, i);
+			}
+			else 
+			{
+				break;
+			}
+		}
+		System.out.println("parsed = " +parsed);
+		return parsed;
+	}
 	
 }
