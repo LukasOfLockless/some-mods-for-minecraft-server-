@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -70,6 +72,7 @@ public class Main extends JavaPlugin implements Listener{
 		
 		
 	}
+	
 	private class raidCoordinate
 	{
 		double x;
@@ -86,6 +89,8 @@ public class Main extends JavaPlugin implements Listener{
 			return (""+(int)x+" "+(int)z+"");
 		}
 	}
+	
+	
 	private class raiderIsTargetingYouCount
 	{
 		Player you;
@@ -108,17 +113,7 @@ public class Main extends JavaPlugin implements Listener{
 			return you.getName();
 		}
 	}
-	private class NamedAreas
-	{
-		public int index;
-		public String name;
-		public NamedAreas(int i, String str) 
-		{
-			index= i;
-			name=str;
-		}
-		
-	}
+	
 	
 //pls dont change these top two ones or the last settigns will get t otal scuffed	
 	private double checkTotalQuestRadius=15000;
@@ -126,9 +121,9 @@ public class Main extends JavaPlugin implements Listener{
 	//floders
 	private File pluginFolderPath;
 	private String foldername="killquest";
-	private String SaveFileKillquestAreasCleared="killquestWorld";
-	private String SaveFileVictory="VictoryList";
-	private String fileNameAreaNames="areanames";
+	private String saveFileKillquestAreasCleared="killquestWorld";
+	private String saveFileVictory="VictoryList";
+	private String saveFileAreaNames="areanames";
 //debug shit
 	private int lookfilteredMobs=0;
 	private int lookWrongWorldfilteredout=0;
@@ -177,10 +172,8 @@ public class Main extends JavaPlugin implements Listener{
 	private boolean namingsmbdCouldNameIt=false;
 	private Player namingTheOneWhoNames;
 	private int namingAreaIndex=-1;
+	private String[] areaNames;
 
-
-	private ArrayList<NamedAreas> namedAreaList;//wins from players after the bigdude named them
-	
 	
 	
 	
@@ -194,12 +187,12 @@ public class Main extends JavaPlugin implements Listener{
 		killquestQuests = new int[assumedSize][4];
 		killquestQuesters = new  ArrayList<Player>();
 		ScrollOfQuestingKnights = new ArrayList<QuesterAndScore>();
-		//areaClear =Collections.emptyMap();
-		//killquests = Collections.emptyMap();
-		//killquesters = Collections.emptyMap();
-		
+		areaNames = new String[assumedSize];
+		//TODO figure out what the fuck is going on over here. 
 		doSomeLoad();
-		DoLoadAreaNames();
+		doSaveAreaBooleans();
+		
+		DoLoadAreaNames();//is null texts
 		
 		getServer().getPluginManager().registerEvents(this, this);
 		System.out.println("killquest enabled");
@@ -208,7 +201,11 @@ public class Main extends JavaPlugin implements Listener{
 	public void onDisable() 
 	{
 		doSaveAreaBooleans();
-		doSaveAreaNames();
+		if(namingsomeAreasChanged==true) 
+		{
+			doSaveAreaNamesAll();
+			
+		}
 		System.out.println("killquest saving data and disabling");
 	}
 	
@@ -220,7 +217,13 @@ public class Main extends JavaPlugin implements Listener{
 		{
 			if(sender instanceof Player) 
 			{
-				PlayerCommandLogic((Player) sender);
+				if (args.length == 0) {
+					PlayerCommandLogic((Player) sender);
+				}
+				else 
+				{
+					PlayerNamesAreaCommandLogic((Player) sender,args);
+				}
 				return true;
 			}
 			else 
@@ -255,6 +258,118 @@ public class Main extends JavaPlugin implements Listener{
         }
 	            */
 		return false;
+	}
+	
+	private void PlayerNamesAreaCommandLogic(Player p,String[] args) 
+	{
+		System.out.println("would execute naming area");
+		if (namingsmbdCouldNameIt==true) 
+		{
+			if(namingTheOneWhoNames == p) 
+			{
+				if(namingAreaIndex == getLocationsKillQuestIndex(p.getLocation().getX(), p.getLocation().getZ()))
+				{
+					String name="";
+					for(int i =0 ; i<args.length ;i++) 
+					{
+						name += args[i]+" ";
+					}
+					doSaveAreaNamesAppend(namingAreaIndex,name);
+					namingsomeAreasChanged=true;
+					namingAreaIndex=-1;
+					System.out.println("naming area:"+name);
+					
+					p.sendMessage(ChatColor.GOLD + "you've given this place a name");
+				}
+				else 
+				{
+					p.sendMessage(ChatColor.GOLD+"you'd need to return to that area, where you won ");
+					return;
+				}
+			}
+			else {p.sendMessage("what?");
+				return;}
+		}else {
+			p.sendMessage("what?");
+			return;}
+		
+	}
+	
+	private void PlayerCommandLogic(Player playerOne) 
+	{
+		System.out.println("executing normal player killquest");
+		int theloca = getLocationsKillQuestIndex(playerOne.getLocation().getX(), playerOne.getLocation().getZ());
+		
+		if(playerIsWithinTrackingRange(playerOne)) 
+		{
+			//PlayerCommandLogic(playerOne);
+			playerOne.sendMessage("you are in "+areaNames[theloca]);
+			if (Math.random()>0.5f) //just to fuck with the ux quality
+			{
+				currentlyClear = CountClearAreas();				
+			}
+			//playerOne.sendMessage("areas safe " +currentlyClear);
+			
+		}
+		else 
+		{
+			playerOne.sendMessage("you are out of range for killquest ");
+		}
+		//maps
+		//killquester
+		if (killquestQuesters.contains(playerOne)==false)
+		{
+			playerOne.sendMessage("Started tracking your kills for ");
+			killquestQuesters.add(playerOne);
+			ScrollOfQuestingKnights.add(new QuesterAndScore(playerOne, theloca));
+			
+		}
+		else 
+		{
+			QuesterAndScore me = new QuesterAndScore(playerOne, 0);
+			for(QuesterAndScore qs:ScrollOfQuestingKnights) 
+			{
+				if(qs.isThis(playerOne.getName())) 
+				{
+					me = qs;
+					System.out.println("Think found the score");
+					break;
+				}
+			}
+			playerOne.sendMessage("your score:"+me.score);
+		}
+		
+		if(killquestClearBool[theloca]==false) 
+		{
+			try 
+			{
+				playerOne.sendMessage(Progress(theloca));
+			}
+			catch(NullPointerException e) 
+			{
+				System.out.println("found null in kill list");
+				killquestQuests[theloca] = new int[4];
+				playerOne.sendMessage(Progress(theloca));
+			}
+		}
+		
+	}
+
+	
+	private void ConsoleCommandLogic(CommandSender cmd) 
+	{
+		
+		int countMaps_areaClear= killquestClearBool.length;//arr
+		int countMaps_killquests= killquestQuests.length;//arr
+		int countMaps_killquesters= killquestQuesters.size();//arraylist
+		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests+" \t Questers:"+countMaps_killquesters);
+		System.out.println("currentlyrunning var"+currentlyRunning + " clear var"+currentlyClear);
+		System.out.println( " \tfilteredtypes "+lookfilteredMobs+" \tworld "+lookWrongWorldfilteredout);
+		for(QuesterAndScore qk: ScrollOfQuestingKnights) 
+		{
+			System.out.println(qk.name + " " +qk.currentIndex+ "   \t score"+qk.score);
+		}
+		
 	}
 	
 	
@@ -776,100 +891,7 @@ public class Main extends JavaPlugin implements Listener{
 		spawnChaos((int)AcceptableChaos,singlePlayerCampaign);
 	}
 	
-	private void PlayerCommandLogic(Player playerOne) 
-	{
-		int theloca = getLocationsKillQuestIndex(playerOne.getLocation().getX(), playerOne.getLocation().getZ());
-		
-		if(playerIsWithinTrackingRange(playerOne)) 
-		{
-			//PlayerCommandLogic(playerOne);
-			playerOne.sendMessage("you are in killquest location {"+theloca+"}");
-			if (Math.random()>0.5f) //just to fuck with the ux
-			{
-				currentlyClear = CountClearAreas();				
-			}
-			playerOne.sendMessage("areas safe " +currentlyClear);
-			
-		}
-		else 
-		{
-			playerOne.sendMessage("you are out of range for killquest to track kills");
-		}
-		//maps
-		//killquester
-		if (killquestQuesters.contains(playerOne)==false)
-		{
-			playerOne.sendMessage("Started tracking your kills for ");
-			killquestQuesters.add(playerOne);
-			boolean doublecheckForBetterList=false;
-			for(QuesterAndScore p:ScrollOfQuestingKnights) 
-			{
-				if(p.isThis(playerOne.getName())) 
-				{
-					doublecheckForBetterList = true;
-					break;
-				}
-			}
-			if(doublecheckForBetterList==false) 
-			{
-				ScrollOfQuestingKnights.add(new QuesterAndScore(playerOne, theloca));
-				
-			}
-		}
-		else 
-		{
-			QuesterAndScore me = new QuesterAndScore(playerOne, 0);
-			for(QuesterAndScore qs:ScrollOfQuestingKnights) 
-			{
-				if(qs.isThis(playerOne.getName())) 
-				{
-					me = qs;
-					System.out.println("Think found the score");
-					break;
-				}
-			}
-			playerOne.sendMessage("your score:"+me.score);
-		}
-		
-		//list killquest 
-		
-		try 
-		{
-			playerOne.sendMessage(Progress(theloca));
-			/*
-			playerOne.sendMessage("killed total");
-			playerOne.sendMessage("creepers  "+killquestQuests[theloca][0]);
-			playerOne.sendMessage("zombiess  "+killquestQuests[theloca][1]);
-			playerOne.sendMessage("spiders   "+killquestQuests[theloca][2]);
-			playerOne.sendMessage("skeletons "+killquestQuests[theloca][3]);
-			*/
-		}
-		catch(NullPointerException e) 
-		{
-			System.out.println("found null in kill list");
-			killquestQuests[theloca] = new int[4];
-		}
-		
-		//pdate scoreboard?
-		
-	}
 
-	
-	private void ConsoleCommandLogic(CommandSender cmd) 
-	{
-		
-		int countMaps_areaClear= killquestClearBool.length;//arr
-		int countMaps_killquests= killquestQuests.length;//arr
-		int countMaps_killquesters= killquestQuesters.size();//arraylist
-		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests+" \t Questers:"+countMaps_killquesters);
-		System.out.println("currentlyrunning var"+currentlyRunning + " clear var"+currentlyClear);
-		System.out.println( " \tfilteredtypes "+lookfilteredMobs+" \tworld "+lookWrongWorldfilteredout);
-		for(QuesterAndScore qk: ScrollOfQuestingKnights) 
-		{
-			System.out.println(qk.name + " " +qk.currentIndex+ "   \t score"+qk.score);
-		}
-	}
-	
 	
 	
 	
@@ -972,7 +994,6 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private void Win(int index) 
 	{
-		namingAreaIndex=index;
 		String namesOfTheChapter ="";
 		
 		
@@ -1036,11 +1057,13 @@ public class Main extends JavaPlugin implements Listener{
 		System.out.println("taking away "+sum+" points of Chaos");
 		
 		namingsmbdCouldNameIt=true;
-		namingTheOneWhoNames=biggestScore;
+		namingTheOneWhoNames=biggestScore;//player
 		namingAreaIndex=index;
 		
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"you did a great deed");
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"you can name this area");
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"/killquest <area name>");
 		
-		//TODO save here
 		RememberTheseKnights(biggestScore.getName(), namesOfTheChapter, Date, index);;
 		
 	}
@@ -1291,38 +1314,114 @@ public class Main extends JavaPlugin implements Listener{
 	{
 		
 		//makes a file filled with 0
-		String printthis="";
+		String printThis="";
 		int howWide = (int)(2*checkTotalQuestRadius/onePartAffectArea);
 		int howLong = (int)(2*checkTotalQuestRadius/onePartAffectArea);
-		for(int iWide = 0 ;iWide<howWide;iWide++ ) 
+		
+		if(new File(saveFileKillquestAreasCleared).exists() == false) 
 		{
-			for(int iLong = 0 ;iLong<howLong;iLong++ ) 
+			System.out.println("initializing ");
+			for(int iWide = 0 ;iWide<howWide;iWide++ ) 
 			{
-				printthis+="0";
+				for(int iLong = 0 ;iLong<howLong;iLong++ ) 
+				{
+					printThis+="0";
+				}
+				printThis+="\n";
 			}
-			printthis+="\n";
+			
+			try{
+				FileWriter writer = new FileWriter(new File(saveFileKillquestAreasCleared));
+			    writer.write(printThis);
+			    writer.close();
+			} catch (IOException e) {
+			   System.out.println("well that print writer didnt work "+e.toString());
+			}
 		}
-		try{
-			FileWriter writer = new FileWriter(SaveFileKillquestAreasCleared);
-		    writer.write(printthis);
-		    writer.close();
-		} catch (IOException e) {
-		   System.out.println("well that print writer didnt work "+e.toString());
+		
+		
+		int LineCount = howWide*howLong;
+		if(new File(saveFileAreaNames).exists() == false) 
+		{
+			printThis="";
+			for(int i=0;i<LineCount;i++) 
+			{
+				if(i>=100) 
+				{
+					printThis += i;
+				}
+				else if(i>=10) 
+				{
+	
+					printThis += "0"+i;
+				}
+				else 
+				{
+	
+					printThis +="00"+ i;
+				}
+				printThis +=" ";
+				for(int u=0;u<3;u++) 
+				{
+					printThis+=getSaltString();
+				}
+
+				printThis +="\n";
+			}
+			//this for loop could possibly go BOOM, but what gives
+			try{
+				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
+			    writer.write(printThis);
+			    writer.close();
+			} catch (IOException e) {
+			   System.out.println("well that print writer didnt work "+e.toString());
+			}
+			
 		}
-		System.out.println(" initload worked ");
+		
+		if(new File(saveFileVictory).exists() == false) 
+		{
+			try
+			{
+				FileWriter writer = new FileWriter(new File(saveFileVictory));
+			    writer.write("");
+			    writer.close();
+			} 
+			catch (IOException e)
+			{
+			   System.out.println("well that print writer didnt work "+e.toString());
+			}
+		}
+		
+		
+		
+		System.out.println(" init Saved ");
 	}
+	protected String getSaltString() {
+        String SALTCHARS = "ᑑ∴ᒷ∷ℸ||⚍╎𝙹!¡ᔑᓭ↸⎓⊣⍑⋮ꖌꖎ⨅/ᓵ⍊ʖリᒲ";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 4) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        String saltStr = salt.toString();
+        return saltStr;
+
+    }
 	
 	private void doSomeLoad() 
 	{
 		//folder checks
 		FolderCreation();
-		System.out.println("killquest loading");
-		File testExist = new File(SaveFileKillquestAreasCleared);
+		System.out.println("SomeLoad from files");
+		File areaBools = new File(saveFileKillquestAreasCleared);
+		File nameAreas = new File (saveFileAreaNames);
+		File Victory = new File(saveFileVictory);
+		
 		try 
 		{
-			
-		
-			if(testExist.exists() == false) 
+			if(areaBools.exists() == false || nameAreas.exists() == false || Victory.exists() == false) 
 			{
 				System.out.println("initialLoad cuz not exist on the second check in LOAD");
 				initSaving();
@@ -1330,19 +1429,19 @@ public class Main extends JavaPlugin implements Listener{
 		} 
 		catch(NullPointerException e)
 		{
-
 			System.out.println("initialLoad cuz null exception");
 			initSaving();
-			
 		}
 		
 
 				
 		//why map anything,array it
-		
-		try{
-			FileReader reader = new FileReader(testExist);
-			BufferedReader buffer=new BufferedReader(reader); 
+		FileReader reader = null;
+		BufferedReader buffer=null;
+		try
+		{
+			reader = new FileReader(areaBools);
+			buffer=new BufferedReader(reader); 
 			String line="";
 			int MapIndex = 0;
 			
@@ -1372,12 +1471,22 @@ public class Main extends JavaPlugin implements Listener{
 				}
 			}
 			
-			buffer.close();
-		    reader.close();
 		}
 		catch (IOException e) 
 		{
 		   System.out.println("well that print writer didnt work "+e.toString());
+		}
+		finally 
+		{
+		    try 
+		    {
+		    	reader.close();
+		    	buffer.close();
+		    }
+		    catch (Exception e)
+		    {
+		    	
+		    }
 		}
 		
 		
@@ -1409,7 +1518,7 @@ public class Main extends JavaPlugin implements Listener{
 		try{
 			//savedData.delete();//deleted
 			//replaces it lol
-			File savedData = new File(SaveFileKillquestAreasCleared);
+			File savedData = new File(saveFileKillquestAreasCleared);
 			
 			FileWriter writer = new FileWriter(savedData);
 		    writer.write(printthis);
@@ -1456,18 +1565,48 @@ public class Main extends JavaPlugin implements Listener{
 		    }
 		}
 		
-		SaveFileKillquestAreasCleared = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld.txt";
 		
-		if(new File(SaveFileKillquestAreasCleared).exists() == false) 
+		saveFileVictory = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"Victory.txt";
+		if(new File(saveFileVictory).exists() == false) 
 		{
 			try 
 			{
 				
-				FileWriter writer = new FileWriter(new File(SaveFileKillquestAreasCleared));
+				FileWriter writer = new FileWriter(new File(saveFileVictory));
+			    writer.write("");
+			    writer.close();
+			}catch (IOException e) {
+				System.out.println("clean up on aisle 5");
+			}
+			initSaving();
+		}
+		
+		saveFileAreaNames= "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"AreaNames.txt";
+		if(new File(saveFileAreaNames).exists() == false) 
+		{
+			try 
+			{
+				
+				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
+			    writer.write("");
+			    writer.close();
+			}catch (IOException e) {
+				System.out.println("clean up on aisle 6");
+			}
+			initSaving();
+		}
+		
+		saveFileKillquestAreasCleared = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld.txt";
+		
+		if(new File(saveFileKillquestAreasCleared).exists() == false) 
+		{
+			try 
+			{
+				
+				FileWriter writer = new FileWriter(new File(saveFileKillquestAreasCleared));
 			    writer.write(" ");
 			    writer.close();
 			}catch (IOException e) {
-				// TODO: handle exception
 				System.out.println("clean up on aisle 7");
 			}
 			initSaving();
@@ -1482,33 +1621,117 @@ public class Main extends JavaPlugin implements Listener{
 
 	private void RememberTheseKnights(String MainGuy, String TheHelpers, String Date, int index) 
 	{
+		
 		String normalLookingString = "\n"+MainGuy+" and gang "+TheHelpers+" cleared "+index+"\n - "+Date;
-		doSaveAppendToVictory(normalLookingString);
+		
+		if(new File(saveFileVictory).exists()) 
+		{
+			try 
+			{
+				
+				FileWriter writer = new FileWriter(new File(saveFileVictory));
+			    writer.append(normalLookingString);
+			    writer.close();
+			}catch (IOException e) {
+				System.out.println("clean up on aisle 5");
+			}
+			initSaving();
+		}
+		else
+		{
+			System.out.println("where the fuckign win file\n"+normalLookingString);
+		}
 	}
-	
 	
 
-	private void doSaveAreaNames() 
+	
+
+	private void doSaveAreaNamesAll() 
 	{
-		if(namingsomeAreasChanged==false) 
+		File namesFile = new File(saveFileAreaNames);
+		clearTheFile(saveFileAreaNames);
+		FileWriter writer = null;
+		try 
 		{
-			return;
+			writer = new FileWriter(namesFile);
+			writer.write("");
+			for (int i = 0; i < areaNames.length ; i++) 
+			{
+				writer.append(i +" "+areaNames[i]+"\n");
+			}
+			
 		}
-		
+		catch (IOException e) 
+		{
+			System.out.println("clean up on aisle 5");
+		}
+		finally 
+		{
+			try 
+			{
+				writer.close();
+				
+			}catch (Exception e) {
+				System.out.println("close error "+e.getStackTrace());
+			}
+		}
 	}
 	
-	private void doSaveAppendToVictory(String appendThis) 
+	public static void clearTheFile(String fileName) {
+		System.out.println("trying to clear");
+		FileWriter fwOb = null;
+		PrintWriter pwOb = null;
+		try 
+		{
+			fwOb = new FileWriter(fileName, false); 
+			pwOb = new PrintWriter(fwOb, false);
+			pwOb.flush();
+			fwOb.close();
+		}
+        catch(IOException e) 
+        {
+        	System.out.println(" i just dont get deleting file contents i guess");
+        }
+		finally 
+		{
+			pwOb.close();
+		}
+        
+    }
+	
+	private void doSaveAreaNamesAppend(int index, String name) 
 	{
-		//SaveFileVictory
+		File namesFile = new File(saveFileAreaNames);
+		FileWriter writer = null;
+		try 
+		{
+			writer = new FileWriter(namesFile);
+		    writer.append(index +" "+name+"\n");
+		}catch (IOException e) {
+			System.out.println("clean up on aisle 5");
+		}
+		finally 
+		{
+			try 
+			{
+				writer.close();
+				
+			}
+			catch (Exception e) 
+			{
+				System.out.println("close error "+e.getStackTrace());
+			}
+		}
 	}
 	
 	private void DoLoadAreaNames() 
 	{
 		System.out.println("killquest loading");
-		File testExist = new File(SaveFileKillquestAreasCleared);
+		File mainFile = new File(saveFileKillquestAreasCleared);
+		
 		try 
 		{
-			if(testExist.exists() == false) 
+			if(mainFile.exists() == false) 
 			{
 				System.out.println("initialLoad cuz not exist on the second check in LOAD");
 				initSaving();
@@ -1523,33 +1746,27 @@ public class Main extends JavaPlugin implements Listener{
 		}
 		
 
-				
-		//why map anything,array it
-		
-		try{
-			FileReader reader = new FileReader(testExist);
+		//int int int " " name
+		try
+		{
+			FileReader reader = new FileReader(new File(saveFileAreaNames));
 			BufferedReader buffer=new BufferedReader(reader); 
 			String line="";
-			
-			int lineCount=0;
-			int AreaIndex=-1;
-			String AreaName="nope";
 			
 			while( (line=buffer.readLine()) != null) 
 			{
 				System.out.println("do smt with :"+line);
-				if(lineCount%4==0) 
+				int firstnum = PrepStringToParsing(line);
+				
+				if(areaNames[firstnum]!=null) 
 				{
-					//index
-					AreaIndex = PrepStringToParsing(line);  
+					areaNames[firstnum] = line.substring(4);
 				}
-				else if(lineCount%4==1)
+				else 
 				{
-					//name
-					AreaName = line;
-					namedAreaList.add(new NamedAreas(AreaIndex,AreaName));
+					initSaveAreaNames();
+					System.out.println("null area name");
 				}
-				lineCount++;
 			}
 			
 			buffer.close();
@@ -1561,6 +1778,45 @@ public class Main extends JavaPlugin implements Listener{
 		}
 	}
 	
+	private void initSaveAreaNames() 
+	{
+		//TODO : area names
+		int LineCount = 900;
+		try 
+		{
+			
+			FileWriter writer = new FileWriter(new File(saveFileAreaNames));
+			String printThis="";
+			for(int i=0;i<LineCount;i++) 
+			{
+				if(i>=100) 
+				{
+					printThis += i;
+				}
+				else if(i>=10) 
+				{
+	
+					printThis += "0"+i;
+				}
+				else 
+				{
+	
+					printThis +="00"+ i;
+				}
+				printThis +=" ";
+				for(int u=0;u<3;u++) 
+				{
+					printThis+=getSaltString();
+				}
+
+				printThis +="\n";
+			}
+		    writer.write("");
+		    writer.close();
+		}catch (IOException e) {
+			System.out.println("clean up on aisle 6");
+		}
+	}
 	
 	
 	private int PrepStringToParsing(String unprep) 
@@ -1570,20 +1826,34 @@ public class Main extends JavaPlugin implements Listener{
 		{
 			chars[i] = unprep.charAt(i);
 		}
-		int parsed=0;
+		int parsed=-10;
+		boolean parsedabit=false;
 		for(int i =0; i<chars.length;i++) 
 		{
 			if(chars[i] == ((char)i)) 
-			{
+			{	
+				
+				parsedabit=true;
 				parsed += i * (int)Math.pow(10, i);
+			}
+			else if (chars[i]==' ')
+			{
+				
 			}
 			else 
 			{
 				break;
 			}
 		}
+		if(parsedabit) {
+			System.out.println("succesful int parse");
+			parsed+=10;}
 		System.out.println("parsed = " +parsed);
+		if (parsed > 900) {System.out.println("ooop");}
 		return parsed;
 	}
+	
+	
+	
 	
 }
