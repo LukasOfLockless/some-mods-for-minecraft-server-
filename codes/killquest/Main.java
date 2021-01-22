@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -33,6 +34,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 
 
 public class Main extends JavaPlugin implements Listener{
@@ -167,7 +170,6 @@ public class Main extends JavaPlugin implements Listener{
 	
 	
 	
-	//TODO make sure these are used.
 	private boolean namingsomeAreasChanged=false;//when is win
 	private boolean namingsmbdCouldNameIt=false;
 	private Player namingTheOneWhoNames;
@@ -278,7 +280,7 @@ public class Main extends JavaPlugin implements Listener{
 					namingsomeAreasChanged=true;
 					namingAreaIndex=-1;
 					System.out.println("naming area:"+name);
-					
+					giveGodApple(p);
 					p.sendMessage(ChatColor.GOLD + "you've given this place a name");
 				}
 				else 
@@ -332,7 +334,7 @@ public class Main extends JavaPlugin implements Listener{
 				if(qs.isThis(playerOne.getName())) 
 				{
 					me = qs;
-					System.out.println("Think found the score");
+					//System.out.println("Think found the score");
 					break;
 				}
 			}
@@ -347,7 +349,7 @@ public class Main extends JavaPlugin implements Listener{
 			}
 			catch(NullPointerException e) 
 			{
-				System.out.println("found null in kill list");
+				//System.out.println("found null in kill list");
 				killquestQuests[theloca] = new int[4];
 				playerOne.sendMessage(Progress(theloca));
 			}
@@ -476,7 +478,20 @@ public class Main extends JavaPlugin implements Listener{
 	
 
 	//logic
-	
+	private void giveGodApple(Player playerOne) 
+	{
+		PlayerInventory inventory = playerOne.getInventory();
+		ItemStack apple= new ItemStack(Material.ENCHANTED_GOLDEN_APPLE,1);
+		ItemMeta meta = apple.getItemMeta();
+		List<String> lore=new ArrayList<String>();
+		lore.add("For your");
+		lore.add(" valor");
+		meta.setLore(lore);
+		meta.setDisplayName(ChatColor.GOLD + "The shiny apple");
+		apple.setItemMeta(meta);
+        inventory.addItem(apple);
+        
+	}
 	
 	private void spawnChaos(int tier , ArrayList<Player> targets) 
 	{
@@ -772,7 +787,7 @@ public class Main extends JavaPlugin implements Listener{
 			if(w == null) 
 			{
 				w = getServer().getWorlds().get(0);
-				System.out.println("not WORLD but "+w.getName());
+				//System.out.println("not WORLD but "+w.getName());
 			}
 			if(w!=null) 
 			{
@@ -791,7 +806,7 @@ public class Main extends JavaPlugin implements Listener{
 	//single raiders do targeting here
 	private void raidStartTargeting() 
 	{		
-		System.out.println("targetting");
+		//System.out.println("targetting");
 		simplierRaiderCount=raiders.size();
 		simplierRaiderIndex=0;
 		raidTargetingTask =new BukkitRunnable() {
@@ -1148,8 +1163,12 @@ public class Main extends JavaPlugin implements Listener{
 			//System.out.println("dont filter this dimension,cuz it not '"+getServer().getWorlds().get(0)+"'");
 			return;
 		}
+		
+		
+		
 		EntityType type= event.getEntityType();
-		EntityType[] filterThis = {EntityType.ZOMBIE,EntityType.SPIDER , EntityType.SKELETON, EntityType.STRAY  ,EntityType.ZOMBIE_VILLAGER ,EntityType.HUSK ,EntityType.DROWNED, EntityType.CREEPER };
+		EntityType[] filterThis = {EntityType.ZOMBIE,EntityType.SPIDER , EntityType.SKELETON, EntityType.STRAY  ,EntityType.ZOMBIE_VILLAGER ,EntityType.HUSK ,EntityType.DROWNED, EntityType.CREEPER,EntityType.WITCH,EntityType.ENDERMAN };
+		//Creature c = (Creature)event.getEntity();//hoping to debug
 		
 		//filter what to cancel
 		boolean  goodType=false;
@@ -1192,7 +1211,7 @@ public class Main extends JavaPlugin implements Listener{
 				{
 					event.setCancelled(true);
 					
-					System.out.println("cockblockworked");
+					//System.out.println("cockblockworked");//prints
 				}
 				else 
 				{
@@ -1338,46 +1357,11 @@ public class Main extends JavaPlugin implements Listener{
 			   System.out.println("well that print writer didnt work "+e.toString());
 			}
 		}
-		
-		
-		int LineCount = howWide*howLong;
 		if(new File(saveFileAreaNames).exists() == false) 
 		{
-			printThis="";
-			for(int i=0;i<LineCount;i++) 
-			{
-				if(i>=100) 
-				{
-					printThis += i;
-				}
-				else if(i>=10) 
-				{
-	
-					printThis += "0"+i;
-				}
-				else 
-				{
-	
-					printThis +="00"+ i;
-				}
-				printThis +=" ";
-				for(int u=0;u<3;u++) 
-				{
-					printThis+=getSaltString();
-				}
-
-				printThis +="\n";
-			}
-			//this for loop could possibly go BOOM, but what gives
-			try{
-				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
-			    writer.write(printThis);
-			    writer.close();
-			} catch (IOException e) {
-			   System.out.println("well that print writer didnt work "+e.toString());
-			}
-			
+			initSaveAreaNames();			
 		}
+		
 		
 		if(new File(saveFileVictory).exists() == false) 
 		{
@@ -1406,6 +1390,7 @@ public class Main extends JavaPlugin implements Listener{
             salt.append(SALTCHARS.charAt(index));
         }
         String saltStr = salt.toString();
+        System.out.println(saltStr);
         return saltStr;
 
     }
@@ -1453,7 +1438,7 @@ public class Main extends JavaPlugin implements Listener{
 					if(MapIndex>=killquestClearBool.length) 
 					{
 						System.out.println("text file contained a tad bit more letters than expected. something scuffed");
-						return;
+						initSaving();
 					}
 					if(line.charAt(i)=='0') 
 					{
@@ -1584,16 +1569,7 @@ public class Main extends JavaPlugin implements Listener{
 		saveFileAreaNames= "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"AreaNames.txt";
 		if(new File(saveFileAreaNames).exists() == false) 
 		{
-			try 
-			{
-				
-				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
-			    writer.write("");
-			    writer.close();
-			}catch (IOException e) {
-				System.out.println("clean up on aisle 6");
-			}
-			initSaving();
+			initSaveAreaNames();
 		}
 		
 		saveFileKillquestAreasCleared = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld.txt";
@@ -1726,24 +1702,7 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private void DoLoadAreaNames() 
 	{
-		System.out.println("killquest loading");
-		File mainFile = new File(saveFileKillquestAreasCleared);
 		
-		try 
-		{
-			if(mainFile.exists() == false) 
-			{
-				System.out.println("initialLoad cuz not exist on the second check in LOAD");
-				initSaving();
-			}
-		} 
-		catch(NullPointerException e)
-		{
-
-			System.out.println("initialLoad cuz null exception");
-			initSaving();
-			
-		}
 		
 
 		//int int int " " name
@@ -1755,18 +1714,16 @@ public class Main extends JavaPlugin implements Listener{
 			
 			while( (line=buffer.readLine()) != null) 
 			{
-				System.out.println("do smt with :"+line);
+				//System.out.println("do smt with :"+line);
 				int firstnum = PrepStringToParsing(line);
 				
-				if(areaNames[firstnum]!=null) 
+				
+				if(firstnum>0 &&firstnum<900) 
 				{
 					areaNames[firstnum] = line.substring(4);
+					//System.out.println("loadkillquest:"+firstnum);
 				}
-				else 
-				{
-					initSaveAreaNames();
-					System.out.println("null area name");
-				}
+				
 			}
 			
 			buffer.close();
@@ -1780,41 +1737,44 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private void initSaveAreaNames() 
 	{
-		//TODO : area names
-		int LineCount = 900;
-		try 
+		if(new File(saveFileAreaNames).exists()==false) 
 		{
 			
-			FileWriter writer = new FileWriter(new File(saveFileAreaNames));
-			String printThis="";
-			for(int i=0;i<LineCount;i++) 
+			int LineCount = 900;
+			try 
 			{
-				if(i>=100) 
+				
+				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
+				for(int i=0;i<LineCount;i++) 
 				{
-					printThis += i;
-				}
-				else if(i>=10) 
-				{
+					String printThis="";
+					if(i>=100) 
+					{
+						printThis += i;
+					}
+					else if(i>=10) 
+					{
+		
+						printThis += "0"+i;
+					}
+					else 
+					{
+		
+						printThis +="00"+ i;
+					}
+					printThis +=" ";
+					for(int u=0;u<3;u++) 
+					{
+						printThis+=getSaltString();
+					}
 	
-					printThis += "0"+i;
+					printThis +="\n";
+					writer.write(printThis);
 				}
-				else 
-				{
-	
-					printThis +="00"+ i;
-				}
-				printThis +=" ";
-				for(int u=0;u<3;u++) 
-				{
-					printThis+=getSaltString();
-				}
-
-				printThis +="\n";
+			    writer.close();
+			}catch (IOException e) {
+				System.out.println("clean up on aisle 6");
 			}
-		    writer.write("");
-		    writer.close();
-		}catch (IOException e) {
-			System.out.println("clean up on aisle 6");
 		}
 	}
 	
@@ -1826,30 +1786,14 @@ public class Main extends JavaPlugin implements Listener{
 		{
 			chars[i] = unprep.charAt(i);
 		}
+		String perp=""+chars[0]+""+chars[1]+""+chars[2];
 		int parsed=-10;
-		boolean parsedabit=false;
-		for(int i =0; i<chars.length;i++) 
-		{
-			if(chars[i] == ((char)i)) 
-			{	
-				
-				parsedabit=true;
-				parsed += i * (int)Math.pow(10, i);
-			}
-			else if (chars[i]==' ')
-			{
-				
-			}
-			else 
-			{
-				break;
-			}
-		}
-		if(parsedabit) {
-			System.out.println("succesful int parse");
-			parsed+=10;}
-		System.out.println("parsed = " +parsed);
-		if (parsed > 900) {System.out.println("ooop");}
+		
+		
+			//it dont work.
+			parsed = Integer.parseUnsignedInt(perp);
+		
+		//System.out.println("parsed = " +parsed);
 		return parsed;
 	}
 	
