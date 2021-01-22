@@ -247,18 +247,6 @@ public class Main extends JavaPlugin implements Listener{
 				return true;
 			}
 		}
-		/* tests worked
-		else if (label.equalsIgnoreCase("turret")) 
-		{
-			
-			CommandSpawns(sender, command, label, args);
-	        
-	                
-	            
-            
-	        return true;
-        }
-	            */
 		return false;
 	}
 	
@@ -289,11 +277,17 @@ public class Main extends JavaPlugin implements Listener{
 					return;
 				}
 			}
-			else {p.sendMessage("what?");
-				return;}
-		}else {
+			else 
+			{
+				p.sendMessage("what?");
+				return;
+			}
+		}
+		else 
+		{
 			p.sendMessage("what?");
-			return;}
+			return;
+		}
 		
 	}
 	
@@ -301,7 +295,7 @@ public class Main extends JavaPlugin implements Listener{
 	{
 		System.out.println("executing normal player killquest");
 		int theloca = getLocationsKillQuestIndex(playerOne.getLocation().getX(), playerOne.getLocation().getZ());
-		
+		//TODO makethis different. how different, ask the pidgeon
 		if(playerIsWithinTrackingRange(playerOne)) 
 		{
 			//PlayerCommandLogic(playerOne);
@@ -360,16 +354,41 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private void ConsoleCommandLogic(CommandSender cmd) 
 	{
+		int countMaps_areaClear=0;
+		for(int i = 0;i<killquestClearBool.length;i++) 
+		{
+			if(killquestClearBool[i]) 
+				 countMaps_areaClear++;
+		}
+		int countMaps_killquests=0;
+		for(int i =0 ;i<killquestQuests.length ; i++) 
+		{
+			if(killquestQuests[i].length==4) 
+			{
+				int yes=0;
+				for(int u =0;u<4;u++) 
+				{
+					yes+=killquestQuests[i][u];
+				}
+				if(yes>8) 
+				{
+					countMaps_killquests++;
+				}
+			}
+		}
 		
-		int countMaps_areaClear= killquestClearBool.length;//arr
-		int countMaps_killquests= killquestQuests.length;//arr
-		int countMaps_killquesters= killquestQuesters.size();//arraylist
-		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests+" \t Questers:"+countMaps_killquesters);
-		System.out.println("currentlyrunning var"+currentlyRunning + " clear var"+currentlyClear);
-		System.out.println( " \tfilteredtypes "+lookfilteredMobs+" \tworld "+lookWrongWorldfilteredout);
+		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests);
+		
 		for(QuesterAndScore qk: ScrollOfQuestingKnights) 
 		{
-			System.out.println(qk.name + " " +qk.currentIndex+ "   \t score"+qk.score);
+			
+			System.out.println(qk.name + " is in " +qk.currentIndex+ "   \t score"+qk.score);
+		
+			if(qk.player.isOnline()==false) 
+			{
+				System.out.println("trying to remove an afk player");
+				ScrollOfQuestingKnights.remove(qk);
+			}
 		}
 		
 	}
@@ -478,6 +497,17 @@ public class Main extends JavaPlugin implements Listener{
 	
 
 	//logic
+	private void RemoveEveryQuesterFromWonArea(int index) 
+	{
+		for(QuesterAndScore qs:ScrollOfQuestingKnights) 
+		{
+			if (qs.currentIndex == index) 
+			{
+				System.out.println("trying to remove after win");
+				ScrollOfQuestingKnights.remove(qs);
+			}
+		}
+	}
 	private void giveGodApple(Player playerOne) 
 	{
 		PlayerInventory inventory = playerOne.getInventory();
@@ -493,7 +523,7 @@ public class Main extends JavaPlugin implements Listener{
         
 	}
 	
-	private void spawnChaos(int tier , ArrayList<Player> targets) 
+	private void spawnChaos( ArrayList<Player> targets) 
 	{
 		
 		if(canSpawnRAID==false) 
@@ -518,8 +548,24 @@ public class Main extends JavaPlugin implements Listener{
 		{
 			
 			for (int u =-1 ; u<=1;u++) 
-			{
-				if(killquestClearBool[getLocationsKillQuestIndex(middle.x+checkDistance*i, middle.z+checkDistance*u)]) raidSpawnLocations.add(wishWooshXZisLocation(middle.x+gameDistance*i,middle.z+gameDistance*u));
+			{//TODO catch nullsssssss!!!
+				int indexofLoca=getLocationsKillQuestIndex(middle.x+checkDistance*i, middle.z+checkDistance*u);
+				System.out.println("trying to spawn raid in loca "+indexofLoca);
+				boolean thereIsSuchArea;
+				if(indexofLoca >=0 && indexofLoca<900) 
+				{
+					thereIsSuchArea=killquestClearBool[indexofLoca];
+				}
+				else 
+				{
+					System.out.println("index is out of range ok");
+					thereIsSuchArea = false;
+				}
+				if(thereIsSuchArea) 
+				{
+					System.out.println("trying to add a spawn location");
+					raidSpawnLocations.add(wishWooshXZisLocation(middle.x+gameDistance*i,middle.z+gameDistance*u));
+				}
 			} 
 			
 		}
@@ -903,7 +949,7 @@ public class Main extends JavaPlugin implements Listener{
 		double AcceptableChaos =Math.sqrt(chaosOfNature/16);
 		p.sendMessage(ChatColor.DARK_RED + "are you ready to take on "+ChatColor.MAGIC +"CHAOS"+ChatColor.RESET+""+ChatColor.DARK_RED+" Lv "+AcceptableChaos);
 		//chaosOfNature = (int)(chaosOfNature-1)/2;
-		spawnChaos((int)AcceptableChaos,singlePlayerCampaign);
+		spawnChaos(singlePlayerCampaign);
 	}
 	
 
@@ -1054,8 +1100,8 @@ public class Main extends JavaPlugin implements Listener{
 					maxScore = qs.score;
 					biggestScore = qs.player;
 				}
-				
-				qs = new QuesterAndScore(qs.player, index);
+				qs.player.sendMessage(ChatColor.GOLD + "You win!");
+				//qs = new QuesterAndScore(qs.player, index);
 			}
 		}
 		
@@ -1065,22 +1111,26 @@ public class Main extends JavaPlugin implements Listener{
 			//findwhich areas around this one are infested with mobs.
 			//todoSpawnRaidImmidiatelly.
 			//target playerswho are still questing here.
-			int tier = possiblyTargeted.size()/2;
-			spawnChaos(tier , possiblyTargeted);
+			spawnChaos(possiblyTargeted);
 			chaosOfNature-=sum;			
 		}
+		else 
+		{
+			System.out.println("chaos to weak to spawn a raid");
+		}
+		
 		System.out.println("taking away "+sum+" points of Chaos");
 		
 		namingsmbdCouldNameIt=true;
 		namingTheOneWhoNames=biggestScore;//player
 		namingAreaIndex=index;
 		
-		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"you did a great deed");
-		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"you can name this area");
-		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"/killquest <area name>");
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"you fought valorously");
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"name this area as you will");
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"/killquest area name");
 		
 		RememberTheseKnights(biggestScore.getName(), namesOfTheChapter, Date, index);;
-		
+		RemoveEveryQuesterFromWonArea(index);//final step
 	}
 	
 	
