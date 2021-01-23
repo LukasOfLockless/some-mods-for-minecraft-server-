@@ -127,11 +127,7 @@ public class Main extends JavaPlugin implements Listener{
 	private String saveFileKillquestAreasCleared="killquestWorld";
 	private String saveFileVictory="VictoryList";
 	private String saveFileAreaNames="areanames";
-//debug shit
-	private int lookfilteredMobs=0;
-	private int lookWrongWorldfilteredout=0;
-	private int currentlyClear=0;
-	private int currentlyRunning=0;
+
 	
 	
 	private int assumedSize;
@@ -142,7 +138,7 @@ public class Main extends JavaPlugin implements Listener{
 	
 	
 	
-//chaos is raid or some quaziloreshit	
+	//chaos is raid or some quaziloreshit	
 	private int chaosOfNature=0;
 
 	
@@ -157,7 +153,7 @@ public class Main extends JavaPlugin implements Listener{
 	private ArrayList<Creature> raiders;//these get AI turned of later
 	private ArrayList<Creature> raidersThatRide;//these get AI turned on on spawn
 	private raidCoordinate lastRaidSpot;//for help turning the canraid back true
-	//TODO hentai the dead ones
+	
 	private ArrayList<Player> raidInitialTargets;//living players
 
 	private ArrayList<raiderIsTargetingYouCount> debugTargetingRng;//used in multiple methods, fuck passing lsitsthem around it var now
@@ -190,8 +186,8 @@ public class Main extends JavaPlugin implements Listener{
 		killquestQuesters = new  ArrayList<Player>();
 		ScrollOfQuestingKnights = new ArrayList<QuesterAndScore>();
 		areaNames = new String[assumedSize];
-		//TODO figure out what the fuck is going on over here. 
-		doSomeLoad();
+		
+		doMainLoading();
 		doSaveAreaBooleans();
 		
 		DoLoadAreaNames();//is null texts
@@ -293,26 +289,36 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private void PlayerCommandLogic(Player playerOne) 
 	{
+		if(canSpawnRAID==false) 
+		{
+			canSpawnRAID = raidStatusFromraiderLists();
+			if(canSpawnRAID) 
+			{
+				playerOne.sendMessage(ChatColor.GOLD+"There air feels fresher");				
+			}
+		}
 		System.out.println("executing normal player killquest");
 		int theloca = getLocationsKillQuestIndex(playerOne.getLocation().getX(), playerOne.getLocation().getZ());
-		//TODO makethis different. how different, ask the pidgeon
+		
 		if(playerIsWithinTrackingRange(playerOne)) 
 		{
-			//PlayerCommandLogic(playerOne);
-			playerOne.sendMessage("you are in "+areaNames[theloca]);
-			if (Math.random()>0.5f) //just to fuck with the ux quality
-			{
-				currentlyClear = CountClearAreas();				
-			}
-			//playerOne.sendMessage("areas safe " +currentlyClear);
+			//PlayerCommandLogic(playerOne);//derpiest bug ive coded in 2021
+			playerOne.sendMessage(ChatColor.GOLD+"you are in "+ChatColor.UNDERLINE+areaNames[theloca]);
 			
 		}
 		else 
 		{
-			playerOne.sendMessage("you are out of range for killquest ");
+			playerOne.sendMessage(ChatColor.LIGHT_PURPLE+"you are out of range for killquest ");
 		}
 		//maps
 		//killquester
+		
+		if(killquestClearBool[theloca]) 
+		{
+			playerOne.sendMessage(ChatColor.GOLD+"There seems to be no monsters around here");
+			return;
+		} 
+		
 		if (killquestQuesters.contains(playerOne)==false)
 		{
 			playerOne.sendMessage("Started tracking your kills for ");
@@ -322,31 +328,34 @@ public class Main extends JavaPlugin implements Listener{
 		}
 		else 
 		{
-			QuesterAndScore me = new QuesterAndScore(playerOne, 0);
+			
+			//look for the score of the dude in the good area theloca
+			boolean foundperfectmatch=false;
 			for(QuesterAndScore qs:ScrollOfQuestingKnights) 
 			{
 				if(qs.isThis(playerOne.getName())) 
 				{
-					me = qs;
-					//System.out.println("Think found the score");
-					break;
+					if(qs.currentIndex == theloca) 
+					{
+						foundperfectmatch= true;
+						playerOne.sendMessage("your score:"+qs.score);
+						break;
+						
+					}
+					
 				}
 			}
-			playerOne.sendMessage("your score:"+me.score);
+			if(foundperfectmatch==false) 
+			{
+				playerOne.sendMessage("your score: 0");
+				ScrollOfQuestingKnights.add(new QuesterAndScore(playerOne,0));
+			}
+			
 		}
 		
 		if(killquestClearBool[theloca]==false) 
 		{
-			try 
-			{
-				playerOne.sendMessage(Progress(theloca));
-			}
-			catch(NullPointerException e) 
-			{
-				//System.out.println("found null in kill list");
-				killquestQuests[theloca] = new int[4];
-				playerOne.sendMessage(Progress(theloca));
-			}
+			playerOne.sendMessage(Progress(theloca));
 		}
 		
 	}
@@ -376,10 +385,14 @@ public class Main extends JavaPlugin implements Listener{
 				}
 			}
 		}
+		System.out.println("\n");
+		System.out.println("\n");
+		System.out.println(" the killquest");
 		
 		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests);
+		ArrayList<QuesterAndScore> remQs = new ArrayList<QuesterAndScore>();
 		
-		for(QuesterAndScore qk: ScrollOfQuestingKnights) 
+		for(QuesterAndScore qk: ScrollOfQuestingKnights) //?
 		{
 			
 			System.out.println(qk.name + " is in " +qk.currentIndex+ "   \t score"+qk.score);
@@ -387,9 +400,33 @@ public class Main extends JavaPlugin implements Listener{
 			if(qk.player.isOnline()==false) 
 			{
 				System.out.println("trying to remove an afk player");
-				ScrollOfQuestingKnights.remove(qk);
+				remQs.add(qk);
+				//ScrollOfQuestingKnights.remove(qk);
 			}
 		}
+		//not confusing awt all
+		for(QuesterAndScore remqs:remQs) 
+		{
+			try 
+			{
+				ScrollOfQuestingKnights.remove(remqs);
+			}
+			catch(NullPointerException e)
+			{
+				//lets do absolutely nothing about it
+			}
+		}
+		System.out.println("\n");
+		System.out.println("\n");
+		for(int i =0; i<killquestClearBool.length;i++) 
+		{
+			if(killquestClearBool[i]) 
+			{
+				System.out.println(i +" is a clear area");
+			}
+		}
+		
+		
 		
 	}
 	
@@ -508,6 +545,30 @@ public class Main extends JavaPlugin implements Listener{
 			}
 		}
 	}
+	
+	private boolean raidStatusFromraiderLists() 
+	{
+		//TODO implement raids end
+		for(Creature c : raiders) 
+		{
+			if (c.isDead()) 
+			{
+				raiders.remove(c);
+			}
+		}
+		for(Creature c : raidersThatRide) 
+		{
+			if (c.isDead()) 
+			{
+				raidersThatRide.remove(c);
+			}
+		}
+		
+		System.out.println("doublechecked on raiders");
+		return (raidersThatRide.size()==0 && raiders.size()==0) ;
+	}
+	
+	
 	private void giveGodApple(Player playerOne) 
 	{
 		PlayerInventory inventory = playerOne.getInventory();
@@ -526,6 +587,16 @@ public class Main extends JavaPlugin implements Listener{
 	private void spawnChaos( ArrayList<Player> targets) 
 	{
 		
+		for (Player p : targets) 
+		{
+			if(p.isOnline() == false) 
+			{
+				System.out.println("needed some debug for initial targets list");
+				targets.remove(p);
+			}
+		}
+		
+		
 		if(canSpawnRAID==false) 
 		{
 			System.out.println("cant spawn raid, there might be "+raiders.size()+" around "+lastRaidSpot.getString() );
@@ -540,6 +611,8 @@ public class Main extends JavaPlugin implements Listener{
 		}
 		middle.z = middle.z/targets.size();
 		middle.x = middle.x/targets.size();
+		//null fix
+		raidSpawnLocations = new ArrayList<Location>();
 		
 		double checkDistance=1000;
 		double gameDistance=60;
@@ -548,19 +621,20 @@ public class Main extends JavaPlugin implements Listener{
 		{
 			
 			for (int u =-1 ; u<=1;u++) 
-			{//TODO catch nullsssssss!!!
+			{
 				int indexofLoca=getLocationsKillQuestIndex(middle.x+checkDistance*i, middle.z+checkDistance*u);
 				System.out.println("trying to spawn raid in loca "+indexofLoca);
 				boolean thereIsSuchArea;
 				if(indexofLoca >=0 && indexofLoca<900) 
 				{
-					thereIsSuchArea=killquestClearBool[indexofLoca];
+					thereIsSuchArea=!killquestClearBool[indexofLoca];//and its clear, so gotta be uncleared to add the shit to the shit
 				}
 				else 
 				{
 					System.out.println("index is out of range ok");
 					thereIsSuchArea = false;
 				}
+				
 				if(thereIsSuchArea) 
 				{
 					System.out.println("trying to add a spawn location");
@@ -571,7 +645,7 @@ public class Main extends JavaPlugin implements Listener{
 		}
 		
 			
-		if(raidSpawnLocations.size()==0) 
+		if(raidSpawnLocations.size()==0) //not initialized?
 		{
 			raidSpawnLocations.add(wishWooshXZisLocation(middle.x, middle.z));
 			System.out.println(" added to middle smt "+raidSpawnLocations.size());
@@ -1037,7 +1111,7 @@ public class Main extends JavaPlugin implements Listener{
 		return true;
 	}
 	
-	
+	@SuppressWarnings("unused")
 	private int CountClearAreas() 
 	{
 		
@@ -1070,10 +1144,10 @@ public class Main extends JavaPlugin implements Listener{
 		String Date = new java.util.Date().toString();
 		
 		killquestClearBool[index] = true;
-		currentlyClear++;
 		System.out.println("Quest Complete!!"+killquestQuests[index][0]+" "+killquestQuests[index][1]+" "+killquestQuests[index][2]+" "+killquestQuests[index][3]+" ");
 		//killquests.remove(key);
 		killquestQuests[index] = new int[1];
+		/*
 		int localCounter=0;
 		for(int i = 0; i<killquestQuests.length ; i++) 
 		{
@@ -1081,8 +1155,7 @@ public class Main extends JavaPlugin implements Listener{
 			{
 				localCounter ++;
 			}
-		}
-		currentlyRunning =  localCounter;
+		}*/
 		ArrayList<Player> possiblyTargeted= new ArrayList<Player>();
 		int sum = 0;
 		OfflinePlayer[] opl=getServer().getOfflinePlayers();
@@ -1209,8 +1282,6 @@ public class Main extends JavaPlugin implements Listener{
 		
 		if(event.getLocation().getWorld() != getServer().getWorlds().get(0)) 
 		{
-			lookWrongWorldfilteredout++;
-			//System.out.println("dont filter this dimension,cuz it not '"+getServer().getWorlds().get(0)+"'");
 			return;
 		}
 		
@@ -1234,7 +1305,6 @@ public class Main extends JavaPlugin implements Listener{
 		
 		if(goodType==false) 
 		{
-			lookfilteredMobs++;
 			//System.out.println("[killquest] basic mobs filtered");
 			return;
 		}
@@ -1445,7 +1515,7 @@ public class Main extends JavaPlugin implements Listener{
 
     }
 	
-	private void doSomeLoad() 
+	private void doMainLoading() 
 	{
 		//folder checks
 		FolderCreation();
@@ -1500,7 +1570,6 @@ public class Main extends JavaPlugin implements Listener{
 					{
 						killquestClearBool[MapIndex]=true;
 						killquestQuests[MapIndex]=new int[1];
-						currentlyClear++;
 						MapIndex++;
 					}
 				}
