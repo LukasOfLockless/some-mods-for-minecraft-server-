@@ -1,4 +1,4 @@
-package lockless.RandomSpawn;
+package lockless.randomSpawn;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -103,18 +103,16 @@ public class Main extends JavaPlugin implements Listener
 		playerOne.sendMessage(ChatColor.RED+""+ChatColor.BOLD +"YOU DIED");
 		System.out.println("lol ded"+LocGibXYZ(event.getEntity().getLocation()));
 	}
-	
-	@EventHandler
+	/* stopping the tests of portals for the time being
 	public void onPortalCreate(PortalCreateEvent event) 
 	{
 		System.out.println("Portal created "+event.getEntity().getName()+" "+LocGibXYZ(event.getEntity().getLocation()));
 	}
-	@EventHandler
 	public void onUsePortal(PlayerPortalEvent event) 
 	{
 		System.out.println("Portal use "+event.getPlayer().getName()+" "+LocGibXYZ(event.getPlayer().getLocation()));
 	}
-	
+	*/
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) 
 	{

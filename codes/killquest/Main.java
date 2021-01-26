@@ -40,6 +40,61 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class Main extends JavaPlugin implements Listener{
 
+
+	private double checkTotalQuestRadius=15000;
+	private double onePartAffectArea=1000;
+	//floders
+	private File pluginFolderPath;
+	private String foldername="killquest";
+	private String saveFileKillquestAreasCleared="killquestWorld";
+	private String saveFileVictory="VictoryList";
+	private String saveFileAreaNames="areanames";
+
+	
+	
+	private int assumedSize;
+	private boolean[] killquestClearBool;//i have the brain capacity to code this, not that
+	private int[][] killquestQuests;//i have the brain capacity to code this, not that
+	private ArrayList <Player> killquestQuesters;//i have the brain capacity to code this, not that
+	private ArrayList <QuesterAndScore> ScrollOfQuestingKnights;
+	
+	//debug true for more info
+	private boolean logMobDeathsToConsole=false;
+	
+	//chaos is raid or some quaziloreshit	
+	private int chaosOfNature=0;
+
+	
+	
+	private boolean canSpawnRAID = true;
+	private int[] raiderSpawnTypesData;
+	private int raiderSpawnTypesIndex=0;
+	
+	private int[] spawnMobAmounts;
+	private ArrayList<Location> raidSpawnLocations;//where raiders spawn, in the midst of players if desperate for alocation.
+	private ArrayList<Creature> raiders;//these get AI turned of later
+	private ArrayList<Creature> raidersThatRide;//these get AI turned on on spawn
+	private raidCoordinate lastRaidSpot;//for help turning the canraid back true
+	
+	private ArrayList<Player> raidInitialTargets;//living players
+
+	private ArrayList<raiderIsTargetingYouCount> debugTargetingRng;//used in multiple methods, fuck passing lsitsthem around it var now
+	private World mainWorld;//getWorld(0)
+	private BukkitRunnable raidSpawningTask; //spawns shit calls raider or ridingraider
+	private BukkitRunnable raidTargetingTask; // turns on ai for some
+
+	private int simplierRaiderCount=0; //used in runnable
+	private int simplierRaiderIndex=0; //used in runnable
+	
+	
+	
+	private boolean namingsomeAreasChanged=false;//when is win
+	private boolean namingsmbdCouldNameIt=false;
+	private Player namingTheOneWhoNames;
+	private int namingAreaIndex=-1;
+	private String[] areaNames;
+
+	
 	
 	private class QuesterAndScore
 	{
@@ -116,63 +171,6 @@ public class Main extends JavaPlugin implements Listener{
 			return you.getName();
 		}
 	}
-	
-	
-//pls dont change these top two ones or the last settigns will get t otal scuffed	
-	private double checkTotalQuestRadius=15000;
-	private double onePartAffectArea=1000;
-	//floders
-	private File pluginFolderPath;
-	private String foldername="killquest";
-	private String saveFileKillquestAreasCleared="killquestWorld";
-	private String saveFileVictory="VictoryList";
-	private String saveFileAreaNames="areanames";
-
-	
-	
-	private int assumedSize;
-	private boolean[] killquestClearBool;//i have the brain capacity to code this, not that
-	private int[][] killquestQuests;//i have the brain capacity to code this, not that
-	private ArrayList <Player> killquestQuesters;//i have the brain capacity to code this, not that
-	private ArrayList <QuesterAndScore> ScrollOfQuestingKnights;
-	
-	
-	
-	//chaos is raid or some quaziloreshit	
-	private int chaosOfNature=0;
-
-	
-	
-	//TODO toggle back to TRue when Raid is dealt with
-	private boolean canSpawnRAID = true;
-	private int[] raiderSpawnTypesData;
-	private int raiderSpawnTypesIndex=0;
-	
-	private int[] spawnMobAmounts;
-	private ArrayList<Location> raidSpawnLocations;//where raiders spawn, in the midst of players if desperate for alocation.
-	private ArrayList<Creature> raiders;//these get AI turned of later
-	private ArrayList<Creature> raidersThatRide;//these get AI turned on on spawn
-	private raidCoordinate lastRaidSpot;//for help turning the canraid back true
-	
-	private ArrayList<Player> raidInitialTargets;//living players
-
-	private ArrayList<raiderIsTargetingYouCount> debugTargetingRng;//used in multiple methods, fuck passing lsitsthem around it var now
-	private World mainWorld;//getWorld(0)
-	private BukkitRunnable raidSpawningTask; //spawns shit calls raider or ridingraider
-	private BukkitRunnable raidTargetingTask; // turns on ai for some
-
-	private int simplierRaiderCount=0; //used in runnable
-	private int simplierRaiderIndex=0; //used in runnable
-	
-	
-	
-	private boolean namingsomeAreasChanged=false;//when is win
-	private boolean namingsmbdCouldNameIt=false;
-	private Player namingTheOneWhoNames;
-	private int namingAreaIndex=-1;
-	private String[] areaNames;
-
-	
 	
 	
 	
@@ -548,7 +546,7 @@ public class Main extends JavaPlugin implements Listener{
 	
 	private boolean raidStatusFromraiderLists() 
 	{
-		//TODO implement raids end
+		
 		for(Creature c : raiders) 
 		{
 			if (c.isDead()) 
@@ -1289,9 +1287,7 @@ public class Main extends JavaPlugin implements Listener{
 		
 		EntityType type= event.getEntityType();
 		EntityType[] filterThis = {EntityType.ZOMBIE,EntityType.SPIDER , EntityType.SKELETON, EntityType.STRAY  ,EntityType.ZOMBIE_VILLAGER ,EntityType.HUSK ,EntityType.DROWNED, EntityType.CREEPER,EntityType.WITCH,EntityType.ENDERMAN };
-		//Creature c = (Creature)event.getEntity();//hoping to debug
 		
-		//filter what to cancel
 		boolean  goodType=false;
 		for (EntityType filter : filterThis) 
 		{
@@ -1428,7 +1424,6 @@ public class Main extends JavaPlugin implements Listener{
 						}
 					}
 					
-					//ScrollOfQuestingKnights.contains().where
 				}
 				else 
 				{
@@ -1436,7 +1431,10 @@ public class Main extends JavaPlugin implements Listener{
 					chaosOfNature++;//asume creature killing creature or some shit
 				}
 			}
-			System.out.println("dead "+deathnotes);
+			if(logMobDeathsToConsole) 
+			{
+				System.out.println("dead "+deathnotes);
+			}
 		}
 		
 		

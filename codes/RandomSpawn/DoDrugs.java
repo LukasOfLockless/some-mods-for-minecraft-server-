@@ -1,4 +1,4 @@
-package lockless.training2;
+package lockless.randomSpawn;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

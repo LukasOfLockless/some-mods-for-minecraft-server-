@@ -26,11 +26,11 @@ public class Main extends JavaPlugin implements Listener{
 	public void onEnable() {
 		System.out.println("enabling  different sleep event outcomes");
 		//suggest tests to look at
-		System.out.println("suggested tests");
-		System.out.println("playerenterbed during night in a safe location, nightskipevent is cancellabe, which is nice. player gets REGENERATION applied");
-		System.out.println("playerenterbed during day normally cancel, but the during that event, the player can sleep with player.sleep(bed,true), just to be immidiatelly kicked out");
-		System.out.println("playerenterbed during night when its not safe, just like villager NPCs do. NOT_SAFE result is given when there are hostiles in a box(8,5,8) around the player. player gets NIGHTVISION applied ");
-		System.out.println("potioneffect BLINDNESS in either case");
+		//System.out.println("suggested tests");
+		//System.out.println("playerenterbed during night in a safe location, nightskipevent is cancellabe, which is nice. player gets REGENERATION applied");
+		//System.out.println("playerenterbed during day normally cancel, but the during that event, the player can sleep with player.sleep(bed,true), just to be immidiatelly kicked out");
+		//System.out.println("playerenterbed during night when its not safe, just like villager NPCs do. NOT_SAFE result is given when there are hostiles in a box(8,5,8) around the player. player gets NIGHTVISION applied ");
+		//System.out.println("potioneffect BLINDNESS in either case");
 		getServer().getPluginManager().registerEvents(this, this);
 	}
 	
@@ -53,10 +53,51 @@ public class Main extends JavaPlugin implements Listener{
 					p.sendMessage(ChatColor.YELLOW+"Bad feeling in your gut");
 				}
 				
-				if(p.getStatistic(Statistic.TIME_SINCE_REST)>12000) 
+				
+				
+			}
+
+		
+			return true;
+		}
+		if(label.equalsIgnoreCase("mysleepschedule"))
+		{
+			if(sender instanceof Player) 
+			{
+				Player p = (Player) sender;
+				int stat = p.getStatistic(Statistic.TIME_SINCE_REST);
+				String lastSleptText = "";
+				if(stat>72000) //insomniac
 				{
-					p.sendMessage(ChatColor.YELLOW+""+ChatColor.UNDERLINE+"sleepy");
+					lastSleptText +=ChatColor.YELLOW+""+ChatColor.UNDERLINE+" really sleepy";
+					p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION ,400,0,false ,false) );
 				}
+				else
+				{
+					if(stat>42000) //halfway there or smt
+					{
+						lastSleptText +=ChatColor.YELLOW+""+ChatColor.UNDERLINE+"sleepy";
+						p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION ,70,0,false ,false) );
+					}else if(stat<420) //wakey wakey
+					{
+
+						lastSleptText +=ChatColor.YELLOW+""+ChatColor.UNDERLINE+"just woke up, good morning, sunshine";
+						p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 420,0,false ,false) );
+					}
+				}
+				
+				p.sendMessage(ChatColor.YELLOW+"slept like "+lastSleptText+" ago it means " + lastSleptText);
+				
+				
+			}
+			else 
+			{
+				String theySleepLikeThis="[sleep module]\n";
+				for(Player p : getServer().getOnlinePlayers()) 
+				{
+					theySleepLikeThis = p.getDisplayName() + " slepts " +p.getStatistic(Statistic.TIME_SINCE_REST)+"ago\n" ;
+				}
+				sender.sendMessage(theySleepLikeThis);
 				
 			}
 
@@ -92,30 +133,14 @@ public class Main extends JavaPlugin implements Listener{
 			}else if(titty.getType()==EntityType.ZOMBIE_VILLAGER) 
 			{
 				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.ZOMBIE_HORSE) 
+			}else  if(titty.getType()==EntityType.DROWNED) 
 			{
 				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.ZOMBIFIED_PIGLIN) 
+			}else if(titty.getType()==EntityType.HUSK) 
 			{
 				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.CAVE_SPIDER) 
+			}else  if(titty.getType()==EntityType.STRAY) 
 			{
-				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.ENDER_DRAGON) 
-			{
-				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.SKELETON_HORSE) 
-			{
-				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.DROWNED) 
-			{
-				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.WITHER) 
-			{
-				overworldishEvilCount++;
-			}else if(titty.getType()==EntityType.ENDERMAN) 
-			{
-
 				overworldishEvilCount++;
 			}
 		}
@@ -129,7 +154,7 @@ public class Main extends JavaPlugin implements Listener{
 	private void OnSleep(PlayerBedEnterEvent event) 
 	{
 		Player p =event.getPlayer();
-		System.out.println("sleep stuff "+event.getBedEnterResult());
+		//System.out.println("sleep stuff "+event.getBedEnterResult());
 		if(event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.OK)) 
 		{
 			p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 600 , 0, true));			
@@ -142,15 +167,13 @@ public class Main extends JavaPlugin implements Listener{
 		
 		else if(event.isCancelled())
 		{			
-			System.out.println("now safe handling is it cancelled? "+ event.getBedEnterResult());//true
-			if(event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.NOT_POSSIBLE_NOW)||event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.NOT_SAFE) ) 
+			//System.out.println("now safe handling is it cancelled? "+ event.getBedEnterResult());//true
+			if( event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.NOT_SAFE) ) 
 			{
-
-				p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 600 , 0, true));		
 				p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 600 , 0, true));
 				Block b = event.getBed();
 				boolean forceNap = true;
-				System.out.println("forcing player sleep"+p.getName()+ " even if event.reasult is "+event.getBedEnterResult()); // is this a good way to do this? it puts them to bed but....
+				//System.out.println("forcing player sleep"+p.getName()+ " even if event.reasult is "+event.getBedEnterResult()); // is this a good way to do this? it puts them to bed but.... its not the best but it wrok
 				p.sleep(b.getLocation(), forceNap);
 			}
 			
@@ -162,18 +185,14 @@ public class Main extends JavaPlugin implements Listener{
 	@EventHandler
 	private void OnWakeUp(PlayerBedLeaveEvent event) 
 	{
-		System.out.println(event.getEventName() + " called by " +event.getPlayer().getName());
+		
 		if(event.getPlayer().hasPotionEffect(PotionEffectType.REGENERATION)) 
-		{
-			event.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);			
+		{		
+			event.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
 			event.getPlayer().removePotionEffect(PotionEffectType.REGENERATION);
-			System.out.println("potion effects stack indicates player was sleeping in a safe location during the night");
 		}
 		if(event.getPlayer().hasPotionEffect(PotionEffectType.NIGHT_VISION)) 
 		{
-
-			System.out.println("potion effects stack indicates player was sleeping in a NOT safe location or NOT during the night");
-			event.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
 			event.getPlayer().removePotionEffect(PotionEffectType.NIGHT_VISION);
 		}
 		
@@ -190,11 +209,8 @@ public class Main extends JavaPlugin implements Listener{
 	@EventHandler 
 	private void OnNightSkip(TimeSkipEvent event)
 	{
-		//nightskip cancel work great this way
-		//players leave bed during the day. its 
 		if( event.getSkipReason().equals(TimeSkipEvent.SkipReason.NIGHT_SKIP)) 
 		{
-			//System.out.println("Cancelling nightskip");// spams every tick!!!!!//can't wait for 1.17 where server.properties or smt seem to be able to adjust nightskip
 			event.setCancelled(true);
 		}
 		else

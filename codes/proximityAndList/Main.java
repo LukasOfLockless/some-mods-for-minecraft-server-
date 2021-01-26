@@ -1,4 +1,6 @@
-package lockless.serverlistandbroadcasts;
+package proximityAndList;
+
+
 
 
 
@@ -21,6 +23,8 @@ public class Main extends JavaPlugin implements Listener
 	private String header="Pidgeon Server";
 	private String footer="try killing a 1024 hostile mobs on spawn island";
 	
+	//TODO make a defaultconfigfile for these headers and footers
+	//TODO test chatcolor on the header footer
 	@Override
 	public void onEnable()
 	{

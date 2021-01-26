@@ -1,4 +1,4 @@
-package lockless.blockrace;
+package lockless.blockRace;
 
 import java.io.File;
 import java.io.IOException;

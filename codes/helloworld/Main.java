@@ -145,15 +145,12 @@ public class Main extends JavaPlugin
 	        			System.out.println(thatOtherPlayer.getName()+" was helloworlded and isnt online");
 	        		}
 	        	}
-	        	//System.out.println("value= " + thatOtherPlayer.getName());
 	        }
 			
 			
 			return true;
 		}
 		return false;
-		//or
-		//return super.onCommand(sender, command, label, args);
 	}
 	
 

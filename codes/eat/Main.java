@@ -20,19 +20,8 @@ public class Main extends JavaPlugin  {
     private int requireStarvation=6; 
     private int setNotStarve=10;
     private int requirehaveBlockBreak =1000;
-    /*
-    import java.io.File;
-	import java.io.PrintWriter;
-	import java.util.Date;
-	import java.text.SimpleDateFormat;
-	import java.util.List;
-	import java.io.IOException;  // Import the IOException class to handle errors
-
-     */
-    //wanna copy and paste this shit all around
     private void FolderCreation() 
     {
-    	//System.out.println("what's wrong?" +this.getDataFolder().toString() + "vs."+"plugins");
 		File authorDir=new File("plugins"+File.separator+"Lockless");
 		if(authorDir.exists()==false) 
 		{
@@ -62,18 +51,6 @@ public class Main extends JavaPlugin  {
 		    }
 			
 		}
-		/*both these work
-		
-		
-		try{
-			FileWriter writer = new FileWriter(pluginFolderPath+File.separator+"fileWriterLines.txt");
-		    writer.write("The first line\n");
-		    writer.write("The second line\n");
-		    writer.close();
-		} catch (IOException e) {
-		   System.out.println("well that print writer didnt work "+e.toString());
-		}
-		*/
     }
 	
 	public void onEnable()

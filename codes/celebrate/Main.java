@@ -46,7 +46,6 @@ public class Main extends JavaPlugin{
     //wanna copy and paste this shit all around
     private void FolderCreation() 
     {
-    	//System.out.println("what's wrong?" +this.getDataFolder().toString() + "vs."+"plugins");
 		File authorDir=new File("plugins"+File.separator+"Lockless");
 		if(authorDir.exists()==false) 
 		{
@@ -76,37 +75,18 @@ public class Main extends JavaPlugin{
 		    }
 			
 		}
-		/*both these work
-		try{
-		    PrintWriter writer = new PrintWriter(pluginFolderPath+File.separator+"printWriterLines.txt", "UTF-8");
-		    writer.println("The first line");
-		    writer.println("The second line");
-		    writer.close();
-		} catch (IOException e) {
-		   System.out.println("well that print writer didnt work "+e.toString());
-		}
-		
-		try{
-			FileWriter writer = new FileWriter(pluginFolderPath+File.separator+"fileWriterLines.txt");
-		    writer.write("The first line\n");
-		    writer.write("The second line\n");
-		    writer.close();
-		} catch (IOException e) {
-		   System.out.println("well that print writer didnt work "+e.toString());
-		}
-		*/
     }
 	
 	public void onEnable()
 	{
-		System.out.println("demondragonkings enabled");
+		System.out.println("celebrate enabled");
 		FolderCreation();
 		FolderCreation();
 	}
 	
 	public void onDisable() 
 	{
-		System.out.println("demondragonkings disabled");
+		System.out.println("celebrate disabled");
 	}
 	
 	
@@ -125,30 +105,26 @@ public class Main extends JavaPlugin{
 			{
 				System.out.println("already celebrating");
 			}
-			
-			if(args[0] !=null) 
-			{
-				reasonToCelebrate = args[0];
-			}else 
-			{
-				reasonToCelebrate="";
+			if(args != null) 
+			{				
+				if(args[0] !=null) 
+				{
+					reasonToCelebrate = args[0];
+				}else 
+				{
+					reasonToCelebrate="";
+				}
 			}
 			
 			try{
-			    PrintWriter writer = new PrintWriter(pluginFolderPath+File.separator+"CelebrationCauses.txt", "UTF-8");
-			    writer.println("celebrating "+reasonToCelebrate);
+			    PrintWriter writer = new PrintWriter(pluginFolderPath+File.separator+"Celebrations.txt", "UTF-8");
+			    writer.append("celebrating "+reasonToCelebrate);
 			    writer.close();
 			} catch (IOException e) {
 			   System.out.println("well that print writer didnt work "+e.toString());
 			}
 			
 			alreadyCelebrating = true;
-			/*
-			if(sender instanceof Player) 
-			{
-				sender.sendMessage("sorry fella, this is for server only");
-				return true;
-			}*/
 			countTimesFireworked=0;
 		
 			fireworkTask = new BukkitRunnable() {
@@ -220,24 +196,22 @@ public class Main extends JavaPlugin{
 			    			   System.out.println("well that print writer didnt work "+e.toString());
 			    			}
 			    	 }
-			    	 if(Bukkit.getServer().getOnlinePlayers().size()==0) 
+			    	 if(Bukkit.getServer().getOnlinePlayers().size()==0 || countTimesFireworked>100) 
 			    	 {
+			    		 alreadyCelebrating=false;
 			    		 this.cancel();
 			    	 }
 				}
 			};
 			
 			fireworkTask.runTaskTimer(this, 69L, 1337L);
-			//Bukkit.getScheduler().scheduleSyncRepeatingTask(this,fireworkTask, );
-			//Bukkit.getServer().dispatchCommand(sender, "/time set night");
-			//Bukkit.getServer().dispatchCommand(sender, "/gamerule doDaylightCycle false");
 			Collection<? extends Player> allPlayers =  getServer().getOnlinePlayers();
 			Iterator<? extends Player> i = allPlayers.iterator();
 			while (i.hasNext()) 
 			{
 				Player thatOtherPlayer = i.next();
 				
-				thatOtherPlayer.sendMessage(ChatColor.LIGHT_PURPLE + " HAPPY CELEBRATING ");
+				thatOtherPlayer.sendMessage(ChatColor.GOLD + " HAPPY CELEBRATING " );
 			}
 
 			return true;
@@ -256,7 +230,6 @@ public class Main extends JavaPlugin{
 			documentCelebration();
 			fireworkTask.cancel();
 			alreadyCelebrating=false;
-			//Bukkit.getServer().dispatchCommand(sender, "/gamerule doDaylightCycle true");
 			return true;
 		}
 		

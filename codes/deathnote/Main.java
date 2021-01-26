@@ -3,17 +3,22 @@ package lockless.deathnote;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.io.IOException;  // Import the IOException class to handle errors
 
+import org.bukkit.BanList.Type;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -61,25 +66,7 @@ public class Main extends JavaPlugin implements Listener{
 		    }
 			
 		}
-		/*both these work
-		try{
-		    PrintWriter writer = new PrintWriter(pluginFolderPath+File.separator+"printWriterLines.txt", "UTF-8");
-		    writer.println("The first line");
-		    writer.println("The second line");
-		    writer.close();
-		} catch (IOException e) {
-		   System.out.println("well that print writer didnt work "+e.toString());
-		}
 		
-		try{
-			FileWriter writer = new FileWriter(pluginFolderPath+File.separator+"fileWriterLines.txt");
-		    writer.write("The first line\n");
-		    writer.write("The second line\n");
-		    writer.close();
-		} catch (IOException e) {
-		   System.out.println("well that print writer didnt work "+e.toString());
-		}
-		*/
     }
 
 	@Override
@@ -97,73 +84,75 @@ public class Main extends JavaPlugin implements Listener{
 		
 		
 	}
-	//last event
-	private PlayerDeathEvent savedEvent;
-	private PlayerInventory savedInv;
-	private Player savedPlayer;
-	private BukkitRunnable asyncTask;
-	@EventHandler
+//async is stupid error
+	@EventHandler 
 	private void OnDeath(PlayerDeathEvent e) 
 	{
-		
-		//maybe async could help with leggg
-		if(asyncTask.isCancelled()) 
+		if(e==null) 
 		{
-			savedEvent = e;
-			savedPlayer = (Player)savedEvent.getEntity();
-			savedInv = savedPlayer.getInventory();	
-			asyncTask = new BukkitRunnable() 
-			{
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					theAssTassk(savedPlayer,savedEvent,savedInv);
-					cancel();
-				}
-			};
-			asyncTask.runTaskLaterAsynchronously(this, 1);
-			
-		}
-		else 
-		{
-			System.out.println("unlogged"+e.getDeathMessage());
+			System.out.println("[deathnotes] went ooop");
+			return;
 		}
 		
-		
-		
-	}	
-	private void theAssTassk(Player p , PlayerDeathEvent d,PlayerInventory inv ) 
-	{
-		//sysTime
-		SimpleDateFormat formatter= new SimpleDateFormat("yyyy'y'MM'm'dd'd'HH'h");
+		SimpleDateFormat formatter= new SimpleDateFormat("yyyy'y'MM'm'dd'd'HH'h'");
 		Date date = new Date(System.currentTimeMillis());
 		//System.out.println(formatter.format(date));
 		if(logToConsole) 
 		{
-			System.out.println("\n\nplayer died and it could be logged\n" + p.getName()+ "\n"+ formatter.format(date) +  "\n"+ d.getDeathMessage());
-			System.out.println(p.getDisplayName());
-			System.out.println("deathnote " +d.getDeathMessage());
+			System.out.println("\n\nplayer died and it could be logged\n" + e.getEntity().getName()+ "\n"+ formatter.format(date));
+			System.out.println(e.getDeathMessage());
 		}
 		//always tries to write to file
 		try
 		{
-		    PrintWriter printer = new PrintWriter(pluginFolderPath.getPath()+File.separator+formatter.format(date) +" "+p.getName().toString()+" deathnote.txt", "UTF-8");
-		    printer.println(p.getDisplayName());
-		    printer.println("deathnote " +d.getDeathMessage());
-		    //printer.println("dropped exp" + e.getDroppedExp() +" to compare to playerstat "+p.getExp());
-		    //printer.print(getInventoryStringA(p));
-		    printer.println("Lv"+p.getLevel());
-		    printer.print(getWitnesses(p,64));
-		    printer.print(getInventoryStringC(inv));
+		 
+			PrintWriter printer = new PrintWriter(pluginFolderPath.getPath()+File.separator+formatter.format(date) +"-"+e.getEntity().getDisplayName()+"-deathnote.txt", "UTF-8");
+		    
+			printer.println(e.getEntity().getDisplayName());
+		    printer.println(e.getDeathMessage());
+		    printer.print(getWitnesses(e.getEntity(),64));
+		    printer.print(getInventoryStringC(e.getEntity().getInventory()));
 		    printer.close();
 		} 
 		catch (IOException ex)
 		{
-			//totalFails
 		   System.out.println("well that print writer didnt work "+ex.toString());
 		}
+		Player bannedNoob = (Player)(e.getEntity());			
 		
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+		Date expiryDate = cal.getTime();
+		System.out.print("unban "+cal.toString());
+		
+		Bukkit.getBanList(Type.NAME).addBan(bannedNoob.getName(), "you died", expiryDate, "here is a note certifying death"+e.getDeathMessage());
+		
+		bannedDude = bannedNoob;
+		//totem of undying isnt really death :D
+		// need a task, because of "entity removed while ticking" makes the player stay online, but they are kicked. shows up on player lsit as well as could be taking up a player slot
+		kicktask=new BukkitRunnable() {
+			
+			@Override
+			public void run() 
+			{
+				bannedDude.kickPlayer(ChatColor.RED+""+ChatColor.BOLD+ "You died");
+			}
+		};
+		
+		kicktask.runTaskLater(this,1l);
+	}	
+	private BukkitRunnable kicktask;
+	private Player bannedDude;
+	
+	
+	
+	@EventHandler
+	private void loginwarning(PlayerJoinEvent event) 
+	{
+		event.getPlayer().sendMessage(" just don't "+ChatColor.RED+" die ");
 	}
+
+	
 	private String getInventoryStringC(PlayerInventory inv) 
 	{
 		try 
