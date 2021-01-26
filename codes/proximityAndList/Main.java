@@ -1,12 +1,9 @@
-package proximityAndList;
-
-
-
-
+package lockless.listAndProximity;
 
 import java.util.Iterator;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,13 +12,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
-
-
 public class Main extends JavaPlugin implements Listener
 {	
 	private double OKDistance=80;
-	private String header="Pidgeon Server";
-	private String footer="try killing a 1024 hostile mobs on spawn island";
 	
 	//TODO make a defaultconfigfile for these headers and footers
 	//TODO test chatcolor on the header footer
@@ -114,7 +107,7 @@ public class Main extends JavaPlugin implements Listener
 	{
 		//System.out.println("set foot and head");
 		event.getPlayer().setPlayerListHeader(this.getConfig().getString("header"));
-		event.getPlayer().setPlayerListFooter(this.getConfig().getString("footer"));
+		event.getPlayer().setPlayerListFooter(ChatColor.LIGHT_PURPLE+ this.getConfig().getString("footer"));
 	}
 	
 }
