@@ -19,7 +19,7 @@ public class Main extends JavaPlugin{
 	public void onEnable() 
 	{
 		System.out.println("report and news on");
-		// TODO Auto-generated method stub
+		this.saveDefaultConfig();
 		FolderCreation();
 		super.onEnable();
 	}
@@ -48,9 +48,13 @@ public class Main extends JavaPlugin{
 			if(sender instanceof Player) 
 			{
 				Player p = (Player) sender;
-				p.sendMessage(readNews());
+				p.sendMessage(ChatColor.GOLD+giveRngNews());
 				
 				return true;
+			}
+			else
+			{
+				GiveAllNews();
 			}
 			return true;
 		}
@@ -58,15 +62,7 @@ public class Main extends JavaPlugin{
 	}
 	private File pluginFolderPath;
 	private String foldername="dev";
-	/*
-    import java.io.File;
-	import java.io.PrintWriter;
-	import java.util.Date;
-	import java.text.SimpleDateFormat;
-	import java.util.List;
-	import java.io.IOException;  // Import the IOException class to handle errors
-
-     */
+	
     //wanna copy and paste this shit all around
     private void FolderCreation() 
     {
@@ -116,7 +112,7 @@ public class Main extends JavaPlugin{
 		}	
 	}
 	private String readNews() 
-	{
+	{//could go unused no idk idc
 		String news="";
         try {
 
@@ -141,4 +137,45 @@ public class Main extends JavaPlugin{
         }
         return news;
     }
+    private void GiveAllNews()
+    {
+	System.out.println("latest good news");
+    	for(String i : this.getConfig().getStringList("news.good"))
+    	{
+    		System.out.println(i);
+    	}
+    	System.out.println("latest bad news");
+    	for(String i : this.getConfig().getStringList("news.bad"))
+    	{
+    		System.out.println(i);
+    	}
+    }
+    private String giveRngNews()
+    {
+    	String theNews=ChatColor.GOLD+"you are here and I'm proud of you";
+    	if(Math.Random()>0.5f)
+    	{
+	    	for(String i : this.getConfig().getStringList("news.good"))
+	    	{
+	    		if(Math.Random()>0.5f)
+	    		{
+		    		theNews= ChatColor.GOLD + "some good news:"+i;
+		    		break;
+	    		}
+	    	}
+	    	
+    	}else{
+    		for(String i : this.getConfig().getStringList("news.bad"))
+	    	{
+	    		if(Math.Random()>0.5f)
+	    		{
+		    		theNews= ChatColor.LIGHT_PURPLE + "some bad news:"+i;
+		    		break;
+	    		}
+	    	}
+	    	
+    	}
+    	return theNews;
+    	
+    } 
 }

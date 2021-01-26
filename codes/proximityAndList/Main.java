@@ -28,6 +28,7 @@ public class Main extends JavaPlugin implements Listener
 	@Override
 	public void onEnable()
 	{
+		this.saveDefaultConfig();
 		System.out.println("broadcaster");
 		getServer().getPluginManager().registerEvents(this, this);
 	}
@@ -106,14 +107,14 @@ public class Main extends JavaPlugin implements Listener
 		return(sqrDistance <= (OKDistance*OKDistance));
 	}
 
-	//TODO serverlist proximity?
+	//TODO serverlist proximity?, total bullshit
 	//this is going to be a bit more difficult that default.
 	@EventHandler
 	private void onLogin(PlayerJoinEvent event) 
 	{
-		System.out.println("set foot and head");
-		event.getPlayer().setPlayerListFooter(footer);
-		event.getPlayer().setPlayerListHeader(header);
+		//System.out.println("set foot and head");
+		event.getPlayer().setPlayerListHeader(this.getConfig().getString("header"));
+		event.getPlayer().setPlayerListFooter(this.getConfig().getString("footer"));
 	}
 	
 }
