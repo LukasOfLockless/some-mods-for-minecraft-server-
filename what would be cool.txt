@@ -20,11 +20,6 @@ killing the campfire will kill the tavern too. lemme make on thing clear. this i
 =wow was cool
 
 
-cool if i made /point
-like...
-deep rock galactic four drunken dwarves go pointing lazers all the time. need to learn particles.
-might be easier to communicate
-=fan of games
 
 corpses on death
 and fucking souls or some shit
@@ -38,10 +33,6 @@ can lose all your shit while afk.
 i know that would hurt. 
 =how keep that data persistent?
 
-/friend
-like hold a compass and do /friend
-that compass always lead to you. give that compass to somebody and tell them that you are their friend now. 
-= no, compass goes north.
 
 proximity chat.
 im tired of unrelated overlaping spam so limit message sent radius. like filter normal onchat to only send to ppl in range and give directional queues or smt
@@ -51,22 +42,13 @@ deaths too.
 achievements tho... this gives me an idea about BOND
 =inprogress, right?
 
-/mail
-i need to do this somehow
-is this another one that needs a DB ?
-i feel excited using a DB on every ocasion. 
-/mail casting time :D 1 second for every character. what's the limit?
-how to handle long mails?
-5minutes + 1minute per 1k blocks in distance between sender and receiver for arrival time
-must've used that bookstand thing atleast once to send letters. 
-=just bring a written and signed book to the blockplucker
 
 want manhunt minigame
-but rly do i wanna flex on others this much? lol
+but rly do u wanna flex on others this much? lol
 
 
 
-this is the notherfucking pidgeon server and there's no pidgeon plugins? 
+this is the blokherfucking pidgeon server and there's no pidgeon plugins? 
 what if players can send out loved birbs on trades. 
 like...
 urhg. i want that 1.17 patch so bad
@@ -86,18 +68,6 @@ how do players get the code
 another DB <3
 monoliths  can be destroyed
 =more savefiles. cool
-
-BONDS
-idk. like how much of the game you played throught with somebody close. the every achievement you get near smbd the bond between the two increments. how BOND can be used in unison with /heal?
-bring ppl back to life  using BOND and shit.
-=sounds sweet, lets not
-
-Lesson timeout. 
-tempban 45 minutes after death
-just. people need to chill after dying imho.
-dying isnt supposed to be a common part of the game
-it's supposed to mean something. 
-= fuck it. wait till the end of the month
 
 what the fuck is demondragonkings all about?
 nw king n king neking
@@ -145,6 +115,9 @@ how to put baritone on mf server. that might be the biggest challange with the s
 
 
 
+unabusable villagers , maybe they have quests or some shit for restock purposes. quests must give EXP and emeralds.
+
+item lore for the cool kids.
 
  
 
