@@ -186,8 +186,7 @@ public class Main extends JavaPlugin implements Listener
 		killquestQuesters = new  ArrayList<Player>();
 		ScrollOfQuestingKnights = new ArrayList<QuesterAndScore>();
 		areaNames = new String[assumedSize];
-		
-		doMainLoading();
+		folderCreation();
 		doSaveAreaBooleans();
 		
 		DoLoadAreaNames();//is null texts
@@ -295,9 +294,12 @@ public class Main extends JavaPlugin implements Listener
 			if(canSpawnRAID) 
 			{
 				playerOne.sendMessage(ChatColor.GOLD+"There air feels fresher");				
+				System.out.println("RAIDING RESET");
 			}
 		}
+		
 		System.out.println("executing normal player killquest");
+		
 		int theloca = getLocationsKillQuestIndex(playerOne.getLocation().getX(), playerOne.getLocation().getZ());
 		
 		if(playerIsWithinTrackingRange(playerOne)) 
@@ -1450,58 +1452,9 @@ public class Main extends JavaPlugin implements Listener
 	
 	
 	//makes file management
-	private void initSaving() 
-	{
-		
-		//makes a file filled with 0
-		String printThis="";
-		int howWide = (int)(2*checkTotalQuestRadius/onePartAffectArea);
-		int howLong = (int)(2*checkTotalQuestRadius/onePartAffectArea);
-		
-		if(new File(saveFileKillquestAreasCleared).exists() == false) 
-		{
-			System.out.println("initializing ");
-			for(int iWide = 0 ;iWide<howWide;iWide++ ) 
-			{
-				for(int iLong = 0 ;iLong<howLong;iLong++ ) 
-				{
-					printThis+="0";
-				}
-				printThis+="\n";
-			}
-			
-			try{
-				FileWriter writer = new FileWriter(new File(saveFileKillquestAreasCleared));
-			    writer.write(printThis);
-			    writer.close();
-			} catch (IOException e) {
-			   System.out.println("well that print writer didnt work "+e.toString());
-			}
-		}
-		if(new File(saveFileAreaNames).exists() == false) 
-		{
-			initSaveAreaNames();			
-		}
-		
-		
-		if(new File(saveFileVictory).exists() == false) 
-		{
-			try
-			{
-				FileWriter writer = new FileWriter(new File(saveFileVictory));
-			    writer.write("");
-			    writer.close();
-			} 
-			catch (IOException e)
-			{
-			   System.out.println("well that print writer didnt work "+e.toString());
-			}
-		}
-		
-		
-		
-		System.out.println(" init Saved ");
-	}
+	
+	
+	
 	protected String getSaltString() {
         String SALTCHARS = "ᑑ∴ᒷ∷ℸ||⚍╎𝙹!¡ᔑᓭ↸⎓⊣⍑⋮ꖌꖎ⨅/ᓵ⍊ʖリᒲ";
         StringBuilder salt = new StringBuilder();
@@ -1515,89 +1468,7 @@ public class Main extends JavaPlugin implements Listener
         return saltStr;
 
     }
-	
-	private void doMainLoading() 
-	{
-		//folder checks
-		FolderCreation();
-		System.out.println("SomeLoad from files");
-		File areaBools = new File(saveFileKillquestAreasCleared);
-		File nameAreas = new File (saveFileAreaNames);
-		File Victory = new File(saveFileVictory);
-		
-		try 
-		{
-			if(areaBools.exists() == false || nameAreas.exists() == false || Victory.exists() == false) 
-			{
-				System.out.println("initialLoad cuz not exist on the second check in LOAD");
-				initSaving();
-			}
-		} 
-		catch(NullPointerException e)
-		{
-			System.out.println("initialLoad cuz null exception");
-			initSaving();
-		}
-		
 
-				
-		//why map anything,array it
-		FileReader reader = null;
-		BufferedReader buffer=null;
-		try
-		{
-			reader = new FileReader(areaBools);
-			buffer=new BufferedReader(reader); 
-			String line="";
-			int MapIndex = 0;
-			
-			
-			while( (line=buffer.readLine()) != null) 
-			{
-				for(int i = 0; i <line.length();i++) 
-				{
-					if(MapIndex>=killquestClearBool.length) 
-					{
-						System.out.println("text file contained a tad bit more letters than expected. something scuffed");
-						initSaving();
-					}
-					if(line.charAt(i)=='0') 
-					{
-						killquestClearBool[MapIndex]=false;
-						killquestQuests[MapIndex]=new int[4];
-						MapIndex++;
-					}
-					else if(line.charAt(i)=='1') 
-					{
-						killquestClearBool[MapIndex]=true;
-						killquestQuests[MapIndex]=new int[1];
-						MapIndex++;
-					}
-				}
-			}
-			
-		}
-		catch (IOException e) 
-		{
-		   System.out.println("well that print writer didnt work "+e.toString());
-		}
-		finally 
-		{
-		    try 
-		    {
-		    	reader.close();
-		    	buffer.close();
-		    }
-		    catch (Exception e)
-		    {
-		    	
-		    }
-		}
-		
-		
-	}
-	
-	
 	
 	private void doSaveAreaBooleans() 
 	{
@@ -1635,7 +1506,7 @@ public class Main extends JavaPlugin implements Listener
 		}
 	}
 
-	private void FolderCreation() 
+	private void folderCreation() 
     {
     	//System.out.println("what's wrong?" +this.getDataFolder().toString() + "vs."+"plugins");
 		File authorDir=new File("plugins"+File.separator+"Lockless");
@@ -1671,7 +1542,7 @@ public class Main extends JavaPlugin implements Listener
 		}
 		
 		
-		saveFileVictory = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"Victory.txt";
+		saveFileVictory = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"Victory";
 		if(new File(saveFileVictory).exists() == false) 
 		{
 			try 
@@ -1683,32 +1554,166 @@ public class Main extends JavaPlugin implements Listener
 			}catch (IOException e) {
 				System.out.println("clean up on aisle 5");
 			}
-			initSaving();
 		}
 		
-		saveFileAreaNames= "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"AreaNames.txt";
+		saveFileAreaNames= "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"AreaNames";
 		if(new File(saveFileAreaNames).exists() == false) 
 		{
-			initSaveAreaNames();
-		}
-		
-		saveFileKillquestAreasCleared = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld.txt";
-		
-		if(new File(saveFileKillquestAreasCleared).exists() == false) 
-		{
+			int LineCount = 900;
 			try 
 			{
 				
-				FileWriter writer = new FileWriter(new File(saveFileKillquestAreasCleared));
-			    writer.write(" ");
+				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
+				for(int i=0;i<LineCount;i++) 
+				{
+					String printThis="";
+					if(i>=100) 
+					{
+						printThis += i;
+					}
+					else if(i>=10) 
+					{
+		
+						printThis += "0"+i;
+					}
+					else 
+					{
+		
+						printThis +="00"+ i;
+					}
+					printThis +=" ";
+					for(int u=0;u<3;u++) 
+					{
+						printThis+=getSaltString();
+					}
+	
+					printThis +="\n";
+					writer.write(printThis);
+				}
 			    writer.close();
+			}catch (IOException e) {
+				System.out.println("clean up on aisle 6");
+			}
+		}
+		
+		saveFileKillquestAreasCleared = "plugins"+File.separator+"Lockless"+File.separator+foldername+File.separator+"killquestWorld";
+		
+		if(new File(saveFileKillquestAreasCleared).exists() == false) 
+		{
+			FileWriter writer=null;
+			try 
+			{
+				
+				writer = new FileWriter(new File(saveFileKillquestAreasCleared));
+				//makes a file filled with 0
+				String printThis="";
+				int howWide = (int)(2*checkTotalQuestRadius/onePartAffectArea);
+				int howLong = (int)(2*checkTotalQuestRadius/onePartAffectArea);
+				
+				
+				System.out.println("initializing bools");
+				for(int iWide = 0 ;iWide<howWide;iWide++ ) 
+				{
+					for(int iLong = 0 ;iLong<howLong;iLong++ ) 
+					{
+						printThis+="0";
+					}
+					printThis+="\n";
+				}
+				
+				
+			    writer.write(printThis);
+			
 			}catch (IOException e) {
 				System.out.println("clean up on aisle 7");
 			}
-			initSaving();
+			finally 
+			{
+				try 
+				{
+					writer.close();
+				}
+				catch(IOException e) 
+				{
+					System.out.println("closing writer"+e.getMessage());
+				}
+			}
 		}
 		
 		
+		System.out.println("SomeLoad from files");
+		File areaBools = new File(saveFileKillquestAreasCleared);
+		File nameAreas = new File (saveFileAreaNames);
+		File Victory = new File(saveFileVictory);
+		
+		try 
+		{
+			if(areaBools.exists() == false || nameAreas.exists() == false || Victory.exists() == false) 
+			{
+				System.out.println("initialLoad cuz not exist on the second check in LOAD");
+				
+			}
+		} 
+		catch(NullPointerException e)
+		{
+			System.out.println("initialLoad cuz null exception");
+			
+		}
+		
+
+				
+		//why map anything,array it
+		FileReader reader = null;
+		BufferedReader buffer=null;
+		try
+		{
+			reader = new FileReader(areaBools);
+			buffer=new BufferedReader(reader); 
+			String line="";
+			int MapIndex = 0;
+			
+			
+			while( (line=buffer.readLine()) != null) 
+			{
+				for(int i = 0; i <line.length();i++) 
+				{
+					if(MapIndex>=killquestClearBool.length) 
+					{
+						System.out.println("text file contained a tad bit more letters than expected. something scuffed");
+						
+					}
+					if(line.charAt(i)=='0') 
+					{
+						killquestClearBool[MapIndex]=false;
+						killquestQuests[MapIndex]=new int[4];
+						MapIndex++;
+					}
+					else if(line.charAt(i)=='1') 
+					{
+						killquestClearBool[MapIndex]=true;
+						killquestQuests[MapIndex]=new int[1];
+						MapIndex++;
+					}
+				}
+			}
+			
+		}
+		catch (IOException e) 
+		{
+		   System.out.println("well that print writer didnt work "+e.toString());
+		}
+		finally 
+		{
+		    try 
+		    {
+		    	reader.close();
+		    	buffer.close();
+		    }
+		    catch (IOException e)
+		    {
+		    	System.out.println("Exception on closin "+e.getMessage());
+		    }
+		}
     }
 	
 	
@@ -1731,7 +1736,7 @@ public class Main extends JavaPlugin implements Listener
 			}catch (IOException e) {
 				System.out.println("clean up on aisle 5");
 			}
-			initSaving();
+			
 		}
 		else
 		{
@@ -1855,48 +1860,7 @@ public class Main extends JavaPlugin implements Listener
 		}
 	}
 	
-	private void initSaveAreaNames() 
-	{
-		if(new File(saveFileAreaNames).exists()==false) 
-		{
-			
-			int LineCount = 900;
-			try 
-			{
-				
-				FileWriter writer = new FileWriter(new File(saveFileAreaNames));
-				for(int i=0;i<LineCount;i++) 
-				{
-					String printThis="";
-					if(i>=100) 
-					{
-						printThis += i;
-					}
-					else if(i>=10) 
-					{
-		
-						printThis += "0"+i;
-					}
-					else 
-					{
-		
-						printThis +="00"+ i;
-					}
-					printThis +=" ";
-					for(int u=0;u<3;u++) 
-					{
-						printThis+=getSaltString();
-					}
-	
-					printThis +="\n";
-					writer.write(printThis);
-				}
-			    writer.close();
-			}catch (IOException e) {
-				System.out.println("clean up on aisle 6");
-			}
-		}
-	}
+
 	
 	
 	private int PrepStringToParsing(String unprep) 
