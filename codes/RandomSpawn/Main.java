@@ -10,10 +10,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 //import org.bukkit.scheduler.BukkitRunnable;
   
@@ -58,7 +56,12 @@ public class Main extends JavaPlugin implements Listener
 		}
 		else 
 		{
-			System.out.println("you just dont want the rng spawn to work do you?");
+			mainWorld = getServer().getWorlds().get(0); //
+			System.out.println("you just dont want the rng spawn to work do you? naming your worlds weird");
+			System.out.println("rng respawn automatically picked " + mainWorld.getName() + " to respawn players at");
+		}
+		if(mainWorld == null) 
+		{
 			getServer().getPluginManager().disablePlugin(this);
 		}
 	}
