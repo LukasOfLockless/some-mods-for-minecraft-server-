@@ -38,7 +38,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
 
-public class Main extends JavaPlugin implements Listener{
+public class Main extends JavaPlugin implements Listener
+{
 
 
 	private double checkTotalQuestRadius=15000;
@@ -175,7 +176,8 @@ public class Main extends JavaPlugin implements Listener{
 	
 	
 
-	public void onEnable() {
+	public void onEnable() 
+	{
 		int sideSize = 2*(int)(checkTotalQuestRadius/onePartAffectArea);
 		assumedSize = sideSize*sideSize;
 		System.out.println("assumed size of killquest arrays " + assumedSize);
@@ -307,6 +309,7 @@ public class Main extends JavaPlugin implements Listener{
 		else 
 		{
 			playerOne.sendMessage(ChatColor.LIGHT_PURPLE+"you are out of range for killquest ");
+			return;
 		}
 		//maps
 		//killquester
