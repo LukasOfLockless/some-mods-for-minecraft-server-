@@ -288,20 +288,7 @@ public class Main extends JavaPlugin implements Listener
 	
 	private void PlayerCommandLogic(Player playerOne) 
 	{
-		if(canSpawnRAID==false) 
-		{
-			canSpawnRAID = raidStatusFromraiderLists();
-			if(canSpawnRAID) 
-			{
-				playerOne.sendMessage(ChatColor.GOLD+"There air feels fresher");				
-				System.out.println("RAIDING RESET");
-			}
-		}
-		
-		System.out.println("executing normal player killquest");
-		
 		int theloca = getLocationsKillQuestIndex(playerOne.getLocation().getX(), playerOne.getLocation().getZ());
-		
 		if(playerIsWithinTrackingRange(playerOne)) 
 		{
 			//PlayerCommandLogic(playerOne);//derpiest bug ive coded in 2021
@@ -310,21 +297,38 @@ public class Main extends JavaPlugin implements Listener
 		}
 		else 
 		{
-			playerOne.sendMessage(ChatColor.LIGHT_PURPLE+"you are out of range for killquest ");
+			playerOne.sendMessage(ChatColor.LIGHT_PURPLE+"killquest only works about "+((int)(checkTotalQuestRadius/1000))+"k blocks off zero zero ");
 			return;
 		}
+		
+		if(canSpawnRAID==false) 
+		{
+			canSpawnRAID = raidStatusFromraiderLists();
+			if(canSpawnRAID) 
+			{
+				playerOne.sendMessage(ChatColor.GOLD+"There air feels fresher");		
+				System.out.println(" ");
+				System.out.println("RAIDING RESET");
+				System.out.println(" ");
+			}
+		}
+		
+		//System.out.println("executing normal player killquest");
+		
+		
+		
 		//maps
 		//killquester
 		
 		if(killquestClearBool[theloca]) 
 		{
-			playerOne.sendMessage(ChatColor.GOLD+"There seems to be no monsters around here");
+			playerOne.sendMessage(ChatColor.GOLD+"There seems to be no monsters around here, in "+areaNames[theloca]);
 			return;
 		} 
 		
 		if (killquestQuesters.contains(playerOne)==false)
 		{
-			playerOne.sendMessage("Started tracking your kills for ");
+			playerOne.sendMessage(ChatColor.GOLD + "Started tracking your kills for "+areaNames[theloca]);
 			killquestQuesters.add(playerOne);
 			ScrollOfQuestingKnights.add(new QuesterAndScore(playerOne, theloca));
 			
@@ -340,8 +344,9 @@ public class Main extends JavaPlugin implements Listener
 				{
 					if(qs.currentIndex == theloca) 
 					{
+						System.out.println("[killquest] perfect match in "+theloca);
 						foundperfectmatch= true;
-						playerOne.sendMessage("your score:"+qs.score);
+						playerOne.sendMessage(ChatColor.GOLD+"your score:"+qs.score);
 						break;
 						
 					}
@@ -350,7 +355,7 @@ public class Main extends JavaPlugin implements Listener
 			}
 			if(foundperfectmatch==false) 
 			{
-				playerOne.sendMessage("your score: 0");
+				playerOne.sendMessage(ChatColor.GOLD+""+ChatColor.UNDERLINE+"your score: 0");
 				ScrollOfQuestingKnights.add(new QuesterAndScore(playerOne,0));
 			}
 			
@@ -393,13 +398,14 @@ public class Main extends JavaPlugin implements Listener
 		System.out.println(" the killquest");
 		
 		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests);
-		ArrayList<QuesterAndScore> remQs = new ArrayList<QuesterAndScore>();
 		
+		/*
+		ArrayList<QuesterAndScore> remQs = new ArrayList<QuesterAndScore>();
 		for(QuesterAndScore qk: ScrollOfQuestingKnights) //?
 		{
 			
 			System.out.println(qk.name + " is in " +qk.currentIndex+ "   \t score"+qk.score);
-		
+			//dont remove offline pls
 			if(qk.player.isOnline()==false) 
 			{
 				System.out.println("trying to remove an afk player");
@@ -408,6 +414,7 @@ public class Main extends JavaPlugin implements Listener
 			}
 		}
 		//not confusing awt all
+		
 		for(QuesterAndScore remqs:remQs) 
 		{
 			try 
@@ -419,13 +426,14 @@ public class Main extends JavaPlugin implements Listener
 				//lets do absolutely nothing about it
 			}
 		}
+		*/
 		System.out.println("\n");
 		System.out.println("\n");
 		for(int i =0; i<killquestClearBool.length;i++) 
 		{
 			if(killquestClearBool[i]) 
 			{
-				System.out.println(i +" is a clear area");
+				System.out.println(i +" "+areaNames[i]);
 			}
 		}
 		
@@ -526,11 +534,7 @@ public class Main extends JavaPlugin implements Listener
                         testentity.setTarget(anyplayer);
                         testentity.launchProjectile(Snowball.class);
                     }},  60);
-    			
-                
-                
     		}
-    		
     	}
     }
 	
@@ -539,19 +543,32 @@ public class Main extends JavaPlugin implements Listener
 	//logic
 	private void RemoveEveryQuesterFromWonArea(int index) 
 	{
+		ArrayList<QuesterAndScore> rmList = new ArrayList<QuesterAndScore>();
 		for(QuesterAndScore qs:ScrollOfQuestingKnights) 
 		{
 			if (qs.currentIndex == index) 
 			{
 				System.out.println("trying to remove after win");
-				ScrollOfQuestingKnights.remove(qs);
+				rmList.add(qs);
+				//ScrollOfQuestingKnights.remove(qs);
 			}
 		}
+		//shouldnt throw bullshit now
+		for(QuesterAndScore qs:rmList) 
+		{
+			try 
+			{
+			ScrollOfQuestingKnights.remove(qs);
+			}catch (Exception e) {
+				// ignore exception lol
+				System.out.println("fucked up removign a questing knight even with smarter logic");
+			}
+		}
+		
 	}
 	
 	private boolean raidStatusFromraiderLists() 
 	{
-		
 		for(Creature c : raiders) 
 		{
 			if (c.isDead()) 
@@ -571,20 +588,19 @@ public class Main extends JavaPlugin implements Listener
 		return (raidersThatRide.size()==0 && raiders.size()==0) ;
 	}
 	
-	
+	//works. happy, nice. lore is there tooo
 	private void giveGodApple(Player playerOne) 
 	{
 		PlayerInventory inventory = playerOne.getInventory();
 		ItemStack apple= new ItemStack(Material.ENCHANTED_GOLDEN_APPLE,1);
 		ItemMeta meta = apple.getItemMeta();
 		List<String> lore=new ArrayList<String>();
-		lore.add("For your");
-		lore.add(" valor");
+		lore.add("For your valor");
+		//lore.add(" valor"); // it'd get printed on a new line in game
 		meta.setLore(lore);
-		meta.setDisplayName(ChatColor.GOLD + "The shiny apple");
+		meta.setDisplayName(ChatColor.GOLD + "Apple of Victory");
 		apple.setItemMeta(meta);
         inventory.addItem(apple);
-        
 	}
 	
 	private void spawnChaos( ArrayList<Player> targets) 
@@ -1176,7 +1192,7 @@ public class Main extends JavaPlugin implements Listener
 					maxScore = qs.score;
 					biggestScore = qs.player;
 				}
-				qs.player.sendMessage(ChatColor.GOLD + "You win!");
+				qs.player.sendMessage(ChatColor.GOLD +""+ChatColor.UNDERLINE+ "You win!");
 				//qs = new QuesterAndScore(qs.player, index);
 			}
 		}
@@ -1195,7 +1211,8 @@ public class Main extends JavaPlugin implements Listener
 			System.out.println("chaos to weak to spawn a raid");
 		}
 		
-		System.out.println("taking away "+sum+" points of Chaos");
+		System.out.println("taking away "+sum+" points of Chaos and going to try to Spawn Raid");
+		
 		
 		namingsmbdCouldNameIt=true;
 		namingTheOneWhoNames=biggestScore;//player
@@ -1203,7 +1220,7 @@ public class Main extends JavaPlugin implements Listener
 		
 		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"you fought valorously");
 		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"name this area as you will");
-		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+"/killquest area name");
+		namingTheOneWhoNames.sendMessage(ChatColor.GOLD+""+ChatColor.UNDERLINE+"/killquest <area name>");
 		
 		RememberTheseKnights(biggestScore.getName(), namesOfTheChapter, Date, index);;
 		RemoveEveryQuesterFromWonArea(index);//final step
@@ -1355,15 +1372,27 @@ public class Main extends JavaPlugin implements Listener
 				 
 			}			
 		}
-		
+		//could do some ridiculous shit on else part of this method. like if it happens far from spawn, buff the mob and autotarget player.
 		
 		
 		
 	}
 	
 	@EventHandler
-	private void onmobDeath(EntityDeathEvent event) 
+	private void onEntityDeath(EntityDeathEvent event) 
 	{
+		//location scores
+		Location loc = event.getEntity().getLocation();
+		
+		double x = loc.getX();
+		double z = loc.getZ();
+		
+		int index = getLocationsKillQuestIndex(x,z);
+		//cheaper
+		if(entityIsWithinTrackingRange(loc)==false) 
+		{
+			return;
+		}
 		
 		if(!(event.getEntity() instanceof Mob) && !(event.getEntity() instanceof Creature)) 
 		{
@@ -1391,28 +1420,17 @@ public class Main extends JavaPlugin implements Listener
 			//System.out.println("[killquest] hostiles filtered");//this gets called. nice
 			return;
 		}
-		//location scores
-		Location loc = event.getEntity().getLocation();
-		
-		double x = loc.getX();
-		double z = loc.getZ();
-		
-		int index = getLocationsKillQuestIndex(x,z);
 		
 		if(entityIsWithinTrackingRange(loc)) 
 		{
-			
 			addToScore( index, type);
 		}
-		else 
-		{
-			return;
-		}
+		
 		
 		if (event.getEntity() instanceof Creature) 
 		{
 			Creature creature = (Creature)event.getEntity();
-			String deathnotes="creature+dmgCause.eventname \t" +creature.getType() +"+"+creature.getLastDamageCause().getEventName();
+			//String deathnotes="creature+dmgCause.eventname \t" +creature.getType() +"+"+creature.getLastDamageCause().getEventName();
 			
 			if(creature.getKiller() != null) 
 			{
@@ -1423,7 +1441,7 @@ public class Main extends JavaPlugin implements Listener
 					{
 						if(p.isThis(((Player)creature.getKiller()).getName())) 
 						{
-							deathnotes+=" by"+p.name +"'s power";
+							
 							p.AddScore(index, 1);
 							break;
 						}
@@ -1432,13 +1450,13 @@ public class Main extends JavaPlugin implements Listener
 				}
 				else 
 				{
-					deathnotes += creature.getKiller().getType();
+					//deathnotes += creature.getKiller().getType();
 					chaosOfNature++;//asume creature killing creature or some shit
 				}
 			}
 			if(logMobDeathsToConsole) 
 			{
-				System.out.println("dead "+deathnotes);
+				System.out.println("dead "+creature.getType() +" "+ creature.getLastDamageCause().getEventName());
 			}
 		}
 		
@@ -1758,7 +1776,16 @@ public class Main extends JavaPlugin implements Listener
 			writer.write("");
 			for (int i = 0; i < areaNames.length ; i++) 
 			{
-				writer.append(i +" "+areaNames[i]+"\n");
+				String lineNumber=""+i;
+				if(i<100) 
+				{
+					lineNumber = "0"+i;
+				}
+				if(i<10) 
+				{
+					lineNumber = "00"+i;
+				}
+				writer.append(lineNumber +" "+areaNames[i]+"\n");
 			}
 			
 		}
@@ -1787,7 +1814,6 @@ public class Main extends JavaPlugin implements Listener
 			fwOb = new FileWriter(fileName, false); 
 			pwOb = new PrintWriter(fwOb, false);
 			pwOb.flush();
-			fwOb.close();
 		}
         catch(IOException e) 
         {
@@ -1795,7 +1821,14 @@ public class Main extends JavaPlugin implements Listener
         }
 		finally 
 		{
-			pwOb.close();
+			try 
+			{
+				pwOb.close();
+				fwOb.close();
+				
+			}catch (IOException e) {
+				System.out.println("fucked up closing a filewriters or someshit");
+			}
 		}
         
     }
@@ -1862,7 +1895,7 @@ public class Main extends JavaPlugin implements Listener
 	
 
 	
-	
+	//addign some stupid reading exceptions i guess
 	private int PrepStringToParsing(String unprep) 
 	{
 		char[] chars= new char[unprep.length()];
@@ -1873,11 +1906,30 @@ public class Main extends JavaPlugin implements Listener
 		String perp=""+chars[0]+""+chars[1]+""+chars[2];
 		int parsed=-10;
 		
+		if (chars[1]==' ') 
+		{
+			System.out.println("cought shit 1==' '");
+			perp = ""+chars[0];
+		}
+		if (chars[2]==' ') 
+		{
+			System.out.println("cought shit 2==' '");
+			perp = ""+chars[0]+""+chars[1];
+		}
 		
-			//it dont work.
+		
+		
+		try 
+		{
+			
 			parsed = Integer.parseUnsignedInt(perp);
+		}
+		catch (Exception e) 
+		{
+			System.out.println("exception in int parse "+e.getMessage());
+		}
 		
-		//System.out.println("parsed = " +parsed);
+		System.out.println("test parsed = " +parsed);
 		return parsed;
 	}
 	
