@@ -396,7 +396,7 @@ public class Main extends JavaPlugin implements Listener
 		System.out.println("\n");
 		System.out.println("\n");
 		System.out.println(" the killquest");
-		
+		System.out.println("current chaos  = "+chaosOfNature);
 		System.out.println("total :"+countMaps_areaClear+"\t Ongoing :"+countMaps_killquests);
 		
 		/*
@@ -826,12 +826,18 @@ public class Main extends JavaPlugin implements Listener
 	        	{
 	        		if(raiderSpawnTypesIndex >= raiderSpawnTypesData.length) 
 	        		{
-	        			System.out.println("done spawning "+raiderSpawnTypesData.length);
+	        			System.out.println("[killquest]done spawning "+raiderSpawnTypesData.length);
+	        			for(int i =0; i<raiderSpawnTypesData.length;i++) 
+	        			{
+	        				System.out.println("[killquest] dump SpawnTypes = index;"+i+" value:"+raiderSpawnTypesData[i]);
+	        			}
 	        			raidStartTargeting();
 	        			cancel();
 	        		}
         			int currentlySpawning =raiderSpawnTypesIndex;
+        			
 	        		Location loca = raidSpawnLocations.get((int)(Math.random()*raidSpawnLocations.size()));//spawn
+	        		
 	        		if(currentlySpawning<5) 
 	        		{
 	        			SpawnARaider(wishWooshIntisEntityType(raiderSpawnTypesData[currentlySpawning]), loca.getX(), loca.getZ() );
@@ -854,12 +860,20 @@ public class Main extends JavaPlugin implements Listener
 	
 	private Player rngTargeting() 
 	{
+		if(raidInitialTargets.size() == 0) 
+		{
+			System.out.println("[Killquest] MASS ive fail, why even spawn if no targets");
+			return null;
+		}
+		
 		int rng = (int)(raidInitialTargets.size()*Math.random());
 		Player target=raidInitialTargets.get(rng);
-		if(target == null) 
+		
+		if (raidInitialTargets.size() ==1) 
 		{
 			target = raidInitialTargets.get(0);
 		}
+		
 		
 		
 		for(raiderIsTargetingYouCount rrr:debugTargetingRng) 
@@ -947,14 +961,69 @@ public class Main extends JavaPlugin implements Listener
 	{		
 		//System.out.println("targetting");
 		simplierRaiderCount=raiders.size();
-		simplierRaiderIndex=0;
-		raidTargetingTask =new BukkitRunnable() {
-	    	public void run() 
+		//bugin this "index 20si out of bounds for array size 3" lol total fuckin spaghetth
+		//TODO : fix endlessness ofthis fucking targeting  block...
+		raidTargetingTask =new BukkitRunnable()
+		{
+			int currentTargetingDude=0;
+			int nullboys=0;
+			int AIsgivend=0;
+			int targetsAssigned=0;
+			public void run() 
 	    	{
 	    		
-	    		if(raiders.get(raiderSpawnTypesIndex)!=null) 
+	    		if (currentTargetingDude<raiders.size()) 
 	    		{
-	    			Creature thatboi = raiders.get(raiderSpawnTypesIndex);
+	    			if(raiders.get(currentTargetingDude)!=null) 
+	    			{
+	    				//same targeting logic
+	    				Creature thatboi = raiders.get(currentTargetingDude);
+		    			if(thatboi.hasAI()==false) 
+		    			{
+		    				AIsgivend++;
+		    				thatboi.setAI(true);
+		    			}
+		    			if(thatboi.getTarget() == null) 
+		    			{
+		    				targetsAssigned++;
+		    				thatboi.setTarget(rngTargeting());
+		    			}
+	    			}
+	    			else 
+	    			{
+	    				nullboys++;
+	    			}
+	    		}
+	    		else 
+	    		{
+	    			System.out.println("[killquest] finished targeting " + raiders.size());
+	    			System.out.println("targets given "+targetsAssigned + " AI's schooled "+ AIsgivend);
+	    			if(nullboys>0) 
+	    			{
+	    				System.out.println("[killquest] bug targetin problems with nulls "+nullboys);
+	    			}
+	    			
+	    			for(Player p:raidInitialTargets) 
+    				{
+    					for(raiderIsTargetingYouCount rrr:debugTargetingRng) 
+    					{
+    						if(rrr.name() == p.getName()) 
+    						{
+    							p.sendMessage(ChatColor.DARK_RED +"you are targeted by "+rrr.getCount()+" raiders");
+    							break;
+    						}
+    					}
+    					
+    				}
+	    			cancel();	
+	    			//time to finish up and cancel
+	    		}
+	    		currentTargetingDude++;
+	    		
+	    		/*old  n buggy, wont stop running
+	    		if(raiders.get(currentTargetingDude)!=null) 
+	    		{
+	    			Creature thatboi = raiders.get(currentTargetingDude);
 	    			if(thatboi.hasAI()==false) 
 	    			{
 	    				thatboi.setAI(true);
@@ -966,7 +1035,7 @@ public class Main extends JavaPlugin implements Listener
 	    		}
 	    		else 
 	    		{
-	    			if(simplierRaiderIndex>=simplierRaiderCount) 
+	    			if(currentTargetingDude<=raiders.size()) 
 	    			{
 	    				for(Player p:raidInitialTargets) 
 	    				{
@@ -984,22 +1053,24 @@ public class Main extends JavaPlugin implements Listener
 	    			}
 	    			System.out.println("raid officially started");
 	    			cancel();
-	    			
 	    		}
-	    		simplierRaiderIndex++;
+	    		 */
 	    	}
     	};
 		// 20L = 1 Second
-    	raidTargetingTask.runTaskTimer(this,1L, 30L);
+    	raidTargetingTask.runTaskTimer(this,1L, 20L);
 	  //Bukkit.getScheduler().runTaskTimer(this, raidSpawningTask,1L, 100L);
 		
 	}
 	
 	private int rng(int min, int max) 
 	{
+		//used in getRaidMobAmounts
 		return (int)(Math.random()*(max-min)) +min;
 	}
+
 	
+//TODO: check against difficulty
 	private int[] getRaidMobAmounts(int tier) 
 	{
 		// i think 0 through 6 are pretty vanilla, but 7 -9 are something that i enjoy
