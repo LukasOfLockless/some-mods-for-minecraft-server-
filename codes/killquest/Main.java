@@ -71,6 +71,9 @@ public class Main extends JavaPlugin implements Listener
 	private int[] raiderSpawnTypesData;
 	private int raiderSpawnTypesIndex=0;
 	
+	private enum raidPowerCalculator{chaos , scoreAvg, scoreMax }
+	private raidPowerCalculator howPowerMath=raidPowerCalculator.chaos;
+	
 	private int[] spawnMobAmounts;
 	private ArrayList<Location> raidSpawnLocations;//where raiders spawn, in the midst of players if desperate for alocation.
 	private ArrayList<Creature> raiders;//these get AI turned of later
@@ -371,6 +374,20 @@ public class Main extends JavaPlugin implements Listener
 	
 	private void ConsoleCommandLogic(CommandSender cmd) 
 	{
+		if (howPowerMath == raidPowerCalculator.chaos) 
+		{
+			System.out.println("[killquest] max score math");
+			howPowerMath = raidPowerCalculator.scoreMax;
+		}else if(howPowerMath == raidPowerCalculator.scoreMax) 
+		{
+			System.out.println("[killquest] average score math");
+			howPowerMath = raidPowerCalculator.scoreAvg;
+		}else if(howPowerMath == raidPowerCalculator.scoreAvg) 
+		{
+			System.out.println("[killquest] chaos tiers math");
+			howPowerMath = raidPowerCalculator.chaos;
+		}
+		
 		int countMaps_areaClear=0;
 		for(int i = 0;i<killquestClearBool.length;i++) 
 		{
@@ -541,6 +558,9 @@ public class Main extends JavaPlugin implements Listener
 	
 
 	//logic
+	
+	
+	
 	private void RemoveEveryQuesterFromWonArea(int index) 
 	{
 		ArrayList<QuesterAndScore> rmList = new ArrayList<QuesterAndScore>();
@@ -566,6 +586,78 @@ public class Main extends JavaPlugin implements Listener
 		}
 		
 	}
+	
+	private int getPowerLevelForCurrentRaid() 
+	{
+		// SCORE MAX, SCORE AVG METHODS AND CHOAS
+		if (howPowerMath == raidPowerCalculator.chaos) 
+		{
+			System.out.println("[killquest] using chaos math");
+			if (chaosOfNature < 50)return 0;
+
+			if (chaosOfNature < 200)return 1;
+
+			if (chaosOfNature < 400)return 2;
+
+			if (chaosOfNature < 800)return 3;
+
+			if (chaosOfNature < 1200)return 4;
+
+			if (chaosOfNature < 1600)return 5;
+
+			if (chaosOfNature < 3000)return 6;
+
+			if (chaosOfNature < 6000)return 7;
+
+			if (chaosOfNature < 9000)return 8;
+			return 9;
+		}
+		else if(howPowerMath == raidPowerCalculator.scoreMax) 
+		{
+
+			System.out.println("[killquest] using max math");
+			int max=0;
+			for (Player p :raidInitialTargets) 
+			{
+				if(p.getTotalExperience()>max) 
+				{
+					max = p.getTotalExperience();
+				}
+			}
+			int tier = max/1000;
+			if(tier > 9) 
+			{
+				tier =9;
+			}
+			System.out.println(" bigest score is "+max+" tier set to "+tier);
+			return tier;
+		}
+		else if(howPowerMath == raidPowerCalculator.scoreAvg) 
+		{
+
+			System.out.println("[killquest] using average math");
+			int sum=0;
+			for (Player p :raidInitialTargets) 
+			{
+				
+					sum= p.getTotalExperience();
+				
+			}
+			double avg = sum/raidInitialTargets.size();
+			int tier = (int)avg/1000;
+			if(tier > 9) 
+			{
+				tier =7;
+			}
+			System.out.println(" bigest score is "+avg+" tier set to "+tier);
+			return tier;
+		}
+		
+		
+		
+		return 0;
+	}
+	
 	
 	private boolean raidStatusFromraiderLists() 
 	{
@@ -610,7 +702,7 @@ public class Main extends JavaPlugin implements Listener
 		{
 			if(p.isOnline() == false) 
 			{
-				System.out.println("needed some debug for initial targets list");
+				System.out.println("[killquest] offline players arent in the raid targets... "+p.getName());
 				targets.remove(p);
 			}
 		}
@@ -618,7 +710,13 @@ public class Main extends JavaPlugin implements Listener
 		
 		if(canSpawnRAID==false) 
 		{
-			System.out.println("cant spawn raid, there might be "+raiders.size()+" around "+lastRaidSpot.getString() );
+			System.out.println("[killquest] cant spawn raid, there might be "+raiders.size()+" around "+lastRaidSpot.getString() );
+			return;
+		}
+		if(chaosOfNature <0) 
+		{
+
+			System.out.println("[killquest] wont spawn raid, because sunshine and butterflies");
 			return;
 		}
 		
@@ -642,57 +740,59 @@ public class Main extends JavaPlugin implements Listener
 			for (int u =-1 ; u<=1;u++) 
 			{
 				int indexofLoca=getLocationsKillQuestIndex(middle.x+checkDistance*i, middle.z+checkDistance*u);
-				System.out.println("trying to spawn raid in loca "+indexofLoca);
+				System.out.println("[killquest] trying to spawn raid in loca "+indexofLoca);
 				boolean thereIsSuchArea;
 				if(indexofLoca >=0 && indexofLoca<900) 
 				{
-					thereIsSuchArea=!killquestClearBool[indexofLoca];//and its clear, so gotta be uncleared to add the shit to the shit
+					thereIsSuchArea=!killquestClearBool[indexofLoca];//and its not clear
 				}
 				else 
 				{
-					System.out.println("index is out of range ok");
+					System.out.println("[killquest] index is out of range ok fix");//TODO actually if out of range, then untamable - add to list of awailable spawns
 					thereIsSuchArea = false;
 				}
 				
 				if(thereIsSuchArea) 
 				{
-					System.out.println("trying to add a spawn location");
+					//System.out.println("trying to add a spawn location");
 					raidSpawnLocations.add(wishWooshXZisLocation(middle.x+gameDistance*i,middle.z+gameDistance*u));
 				}
 			} 
-			
 		}
 		
 			
 		if(raidSpawnLocations.size()==0) //not initialized?
 		{
 			raidSpawnLocations.add(wishWooshXZisLocation(middle.x, middle.z));
-			System.out.println(" added to middle smt "+raidSpawnLocations.size());
+			System.out.println("[killquest]  added to middle smt "+raidSpawnLocations.size());
 				
 		}	
 		else 
 		{
 			
-			System.out.println(" sides of Chaos Atm "+raidSpawnLocations.size());
+			System.out.println("[killquest] sides of Chaos Atm "+raidSpawnLocations.size());
 		}
-		
-		int actualTier = targets.size() + raidSpawnLocations.size();
-		if (actualTier>9) 
-		{
-			actualTier=9;
-		}
-		chaosOfNature-=actualTier*10;
-		if(chaosOfNature <0) {chaosOfNature=0;}
-				
-		spawnMobAmounts = getRaidMobAmounts(actualTier);
 		
 		raiders = new ArrayList<Creature>();
-		raidersThatRide = new ArrayList<>();
+		raidersThatRide = new ArrayList<Creature>();
 		canSpawnRAID =false;
 		
 		raidInitialTargets = targets;
 		
+		int actualTier = 0; // this is stupid
+		//TODO add an algorythm to this madness
+		
+		actualTier = getPowerLevelForCurrentRaid();//rides on having the freshest targets on raidInitialTargets
+		//balancing
+		
+		
+		chaosOfNature-=actualTier*10;
+		
+		
+		spawnMobAmounts = getRaidMobAmounts(actualTier);
+		
 		debugTargetingRng = new ArrayList<raiderIsTargetingYouCount>();
+		//i dont understand this anymore, but it works and ok
 		for(Player p: targets) 
 		{
 			debugTargetingRng.add(new raiderIsTargetingYouCount(p));	
@@ -766,10 +866,11 @@ public class Main extends JavaPlugin implements Listener
 		Creature raider=(Creature)mainWorld.spawnEntity(spawnHere, type);
 		raider.setTarget((LivingEntity)rngTargeting());
 		
+		//System.out.println("[killquest] raider "+raider.hasAI()) ;
+		System.out.println("[killquest] raider "+(int )x+" "+(int)z);
 		
 		
 		
-		System.out.println("raider dumb "+raider.hasAI()) ;
 		if(raider.hasAI()==false) 
 		{
 			raider.setAI(true);			
@@ -781,6 +882,7 @@ public class Main extends JavaPlugin implements Listener
 	
 	private void SpawnARidingRaider(EntityType type,double x, double z) 
 	{
+		//TODO find out if a ravager that is riding a ravager really could've happened
 		EntityType ravogaroType = EntityType.RAVAGER;
 		Location spawnHere = rngSpawnForRaiders(x,z,5);
 		Creature ravagaro = (Creature)mainWorld.spawnEntity(spawnHere, ravogaroType);
@@ -790,10 +892,11 @@ public class Main extends JavaPlugin implements Listener
 		ravagaro.setTarget(tartget);
 		ravagaro.addPassenger(rider);
 		
-		System.out.println("rider dumb "+rider.hasAI()+ " ravager dumb "+ ravagaro.hasAI()) ;
+		//System.out.println("rider dumb "+rider.hasAI()+ " ravager dumb "+ ravagaro.hasAI()) ;
 		
 		
-		
+
+		System.out.println("[killquest] riding raider "+(int )x+" "+(int)z);
 		raidersThatRide.add(rider);
 		raidersThatRide.add(ravagaro);
 		
@@ -962,7 +1065,7 @@ public class Main extends JavaPlugin implements Listener
 		//System.out.println("targetting");
 		simplierRaiderCount=raiders.size();
 		//bugin this "index 20si out of bounds for array size 3" lol total fuckin spaghetth
-		//TODO : fix endlessness ofthis fucking targeting  block...
+		//fixed uncancelling
 		raidTargetingTask =new BukkitRunnable()
 		{
 			int currentTargetingDude=0;
@@ -1070,9 +1173,11 @@ public class Main extends JavaPlugin implements Listener
 	}
 
 	
-//TODO: check against difficulty
+//TODO: test these. ar they balanced difficult!?
 	private int[] getRaidMobAmounts(int tier) 
 	{
+		System.out.println("[killquest] requested tier "+tier);
+		System.out.println("[tilt quest] was it balanced?");
 		// i think 0 through 6 are pretty vanilla, but 7 -9 are something that i enjoy
 		//pillager, vindicator, ravager,witch, evoker, and then mixes of ravriders pill,vindic, evoker.
 		int[][] amounts = new int[10][];
@@ -1091,8 +1196,8 @@ public class Main extends JavaPlugin implements Listener
 			return amounts[tier];			
 		}
 		
-		
-		return amounts[7];
+		//this is a safety net of oopsies i guess.
+		return amounts[2];
 		
 	}
 	
@@ -1100,19 +1205,17 @@ public class Main extends JavaPlugin implements Listener
 	{
 		if(canSpawnRAID==false) 
 		{
-			p.sendMessage("the forces of Ill  might be "+raiders.size()+" around "+lastRaidSpot.getString() );
+			p.sendMessage("the forces of Ill  might be "+(raiders.size()+(raidersThatRide.size()*2))+" around "+lastRaidSpot.getString() );
 			return;
 		}
+		
 		Location loca = p.getLocation();
-		loca.setX(loca.getX()+32);
-		loca= p.getWorld().getHighestBlockAt((int)loca.getX(), (int)loca.getZ()).getLocation();
-		System.out.println(p.getDisplayName() + " wants a raid on " + loca);
+		
+		System.out.println(p.getDisplayName() + " wants a raid on " + loca.getX() +" "+loca.getZ());
 		ArrayList<Player> singlePlayerCampaign=new ArrayList<Player>();
 		singlePlayerCampaign.add(p);
 		
-		double AcceptableChaos =Math.sqrt(chaosOfNature/16);
-		p.sendMessage(ChatColor.DARK_RED + "are you ready to take on "+ChatColor.MAGIC +"CHAOS"+ChatColor.RESET+""+ChatColor.DARK_RED+" Lv "+AcceptableChaos);
-		//chaosOfNature = (int)(chaosOfNature-1)/2;
+		p.sendMessage(ChatColor.DARK_RED + "OK");
 		spawnChaos(singlePlayerCampaign);
 	}
 	
