@@ -5,8 +5,11 @@ import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -30,8 +33,8 @@ public class Main extends JavaPlugin
 			if(sender instanceof Player) 
 			{
 				Player p = (Player) sender;
-				p.sendMessage(ChatColor.GOLD + "Total gained : " + p.getTotalExperience());
-				p.sendMessage(ChatColor.GOLD+ ""+p.getExpToLevel() + " xp to Level " +  (p.getLevel()+1));
+				p.sendMessage(ChatColor.GOLD + "score:" + p.getTotalExperience());
+				p.sendMessage(ChatColor.GOLD+ ""+p.getExpToLevel() + " experience to level up ");
 				//p.sendMessage(ChatColor.GOLD + "Levels : " + p.getLevel());
 				//p.sendMessage(ChatColor.GOLD + "Exp : " + p.getExp());
 			}
@@ -64,18 +67,50 @@ public class Main extends JavaPlugin
 						}
 					}
 					System.out.println("\n\n");
-					System.out.println("EXP LIST");
+					System.out.println("[EXP LIST]");
 					System.out.println("BEST is " + best.getName() + " with " + highest + "EXP");
 					for(Player p: collection) 
 					{
 						if ((p.getName() == best.getName())==false) 
 						{
-							System.out.println(p.getName()+" \t:"+p.getTotalExperience());
+							System.out.println(p.getName()+" "+p.getDisplayName() +" \t:"+p.getTotalExperience());
 						}
 					}
+					System.out.println("\noffline last played");
+					
+					for(OfflinePlayer p: getServer().getOfflinePlayers()) 
+					{
+					
+						Date d = new Date(p.getLastPlayed());
+						System.out.println(p.getName()+" \tlast played:"+d.toString());
+						
+					}
+
+					System.out.println("[EXP LIST]");
 					System.out.println("\n\n");
 				}
 			}
+			return true;
+		}
+		if(label.equalsIgnoreCase("joined")) 
+		{
+			if (sender instanceof Player) 
+			{
+				Player playerOne = (Player) sender;
+				Date d = new Date(playerOne.getFirstPlayed());
+				playerOne.sendMessage(ChatColor.GOLD+ "You first joined : "+d.toString());
+				return true;
+				
+			}
+			else 
+			{
+				for(OfflinePlayer p: getServer().getOfflinePlayers()) 
+				{
+					Date d = new Date(p.getFirstPlayed());
+					System.out.println(p.getName()+" \tfirst played:"+d.toString());
+				}
+			} 
+			
 			return true;
 		}
 		return false;

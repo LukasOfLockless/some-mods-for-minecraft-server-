@@ -1,0 +1,6 @@
+main: lockless.playerList.Main
+name: playerlist
+version: 0.21
+author: lockless
+description: tab stuff
+api-version: 1.16
