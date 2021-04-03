@@ -1,30 +1,26 @@
 package lockless.kickonTHE;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.UUID;
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import java.util.ArrayList;
+
+import org.bukkit.Material;
+import org.bukkit.block.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin implements Listener
 {	
 	
-	private boolean debugprintStuff=true;
 	@Override
 	public void onEnable() {
 		System.out.println("[kickonTHE] enabled");
-		getServer().getPluginManager().registerEvents(this, this);
-		super.onEnable();
+		getServer().getPluginManager().registerEvents(this, this);// this line kinda puts this plugins ear to the servers chest to listen to the heartbeat in form of specified events
+		super.onEnable();//super is like a wonky thing that says "i do this, afterwards do default route, which is handled by the server.
 	}
 	@Override
 	public void onDisable() {
@@ -34,186 +30,88 @@ public class Main extends JavaPlugin implements Listener
 
 	
 	
-	//events
-	@EventHandler (priority = EventPriority.NORMAL)
+	//events , HIGH is slowest. it ought to not be cool with everything else going on.
+	@EventHandler (priority = EventPriority.HIGH)
 	private void chat(AsyncPlayerChatEvent event)
 	{
-		if(event == null) 
-		{
-			if(debugprintStuff)
-			{
-				System.out.println("[proximity chat] ");				
-			}
-			
-			return;
-		}
-		
-		//boolean quick = event.isAsynchronous();
-		
-		
-		String recipientsReallyClose="";
-		String recipientsNormalProximity="";
-		String recipientsMuffledOnly="";
-		
-		String messageMuffled="";
-		
-		
-		boolean needToMuzzle=false;
-		for (Player p : event.getRecipients()) {
-			
-			if(distance(event.getPlayer(),p,DistanceNormal)) 
-			{
-				recipientsReallyClose+= " "+p.getName();
-			}
-			
-			if(distance(event.getPlayer(),p,DistanceNormal)) 
-			{
-				recipientsNormalProximity += " "+p.getName();
-			}else if(distance(event.getPlayer(),p,DistanceMuffled)) 
-			{
-				needToMuzzle=true;
-				recipientsMuffledOnly +=" "+p.getName();
-			}
-		}
-		if (debugprintStuff) 
-		{
-			System.out.println("[proximity chat] chatEvent recipients");
-			//dump all the shit
-			System.out.println("close");
-			System.out.println(recipientsReallyClose);
+		//I expect these things to be the actual messages
+		String msg = event.getMessage();
 
-			System.out.println("normal");
-			System.out.println(recipientsNormalProximity);
-			
-			System.out.println("muffled");
-			System.out.println(recipientsMuffledOnly);
-
-		}
+		// i realise this little  process - looking for t-word is gonna be the same for both chat and signs, so... 
+	//function call
+		TWwordSearchIn(msg,event.getPlayer());//its written in the bottom
 		
-		
-		if(needToMuzzle) 
-		{
-			messageMuffled = event.getMessage();
-			char[] cars2 = messageMuffled.toLowerCase().toCharArray();
-			if (debugprintStuff ) 
-			{
-				System.out.println();
-			}
-			
-			//muffling algorythm
-			for(int i=0; i<cars2.length; i++) 
-			{
-				if (cars2[i] == 's' ||cars2[i] == 'z' || cars2[i] == 't'|| cars2[i] == 'd' || cars2[i] == 'k'|| cars2[i] == 'g'|| cars2[i] == 'q'|| cars2[i] == 'p'|| cars2[i] == 'b'|| cars2[i] == 'c'|| cars2[i] == 'x') 
-				{
-					if (debugprintStuff ) 
-					{
-						System.out.print(cars2[i]+"");
-					}					
-					cars2[i]=' ';
-				}
-			}
-			messageMuffled = cars2.toString();
-			
-			if (debugprintStuff ) 
-			{
-
-				if(needToMuzzle) 
-				{
-					System.out.println("[proximity chat] chatEvent mesage: "+event.getMessage());
-					System.out.println("[proximity chat] chatEvent me a e: "+messageMuffled);
-				}
-				else 
-				{
-					System.out.println("[proximity chat] chatEvent mesage: "+event.getMessage());
-				}
-
-			
-			}
-		}
-		
-		
-	
-		ArrayList<Player> recipientsThatInNormalDistance=new ArrayList<Player>();
-		
-		ArrayList<Player> recipientsThatInMuffledDistance=new ArrayList<Player>();
-		
-		Player sender=event.getPlayer();
-		
-			
-					
-		
-		
-		Iterator<Player> iterator = recipientsThatInMuffledDistance.iterator();
-		
-		while(iterator.hasNext()) 
-		{
-			Player p =iterator.next();
-			if(distance(sender,p,DistanceNormal))
-			{
-				recipientsThatInNormalDistance.add(p);
-				
-			}
-			else if (distance(sender,p,DistanceMuffled))
-			{
-
-				recipientsThatInMuffledDistance.add(p);
-			}
-		}
-		
-		if (debugprintStuff ) 
-		{
-			System.out.println("normal msg size()" + recipientsThatInNormalDistance.size());
-
-			System.out.println("muffled size()" + recipientsThatInMuffledDistance.size());
-		}
-		
-
-		for(Player got: recipientsThatInNormalDistance) 
-		{
-			got.sendMessage(messageMuffled);
-			got.sendMessage(playerGetColor(event.getPlayer())+"<"+event.getPlayer().getDisplayName()+"> "+ChatColor.RESET+ event.getMessage());
-		}
-		for(Player got: recipientsThatInMuffledDistance) 
-		{
-			got.sendMessage(messageMuffled);
-			got.sendMessage(playerGetColor(event.getPlayer())+"<"+event.getPlayer().getDisplayName()+"> "+ChatColor.RESET+ messageMuffled);
-			
-		}
-		
-		event.setCancelled(true);
-		
+		//event.setCancelled(true); // message still gets sent with this line commented out
 	}
+	// so i think that was easy and could sometimes ki
 	
-	private String playerGetColor(Player p) 
+	@EventHandler (priority = EventPriority.HIGH)
+	private void placedSign(BlockPlaceEvent event) 
 	{
-		String[] colors = new String[]{""+ChatColor.WHITE , ""+ChatColor.BLUE ,   ""+ChatColor.GRAY, ""+ChatColor.GREEN, ""+ChatColor.RED, ""+ChatColor.AQUA ,  ""+ChatColor.YELLOW};
+		//1st things 1st. 99% of all blocks placed arent signs. yeet out and stop processing and yoinking RAM if its not a sign.
+		//shit. this one has to use a loopy loop, because there's a bunch of signs.
+		ArrayList<Material> signs  = new ArrayList<Material>(); 
+		//testest signs and I am forgetti to actually put values into this array, loop not looped, so heres the thing
+		signs.add(Material.ACACIA_SIGN);
+		signs.add(Material.ACACIA_WALL_SIGN);
+		signs.add(Material.BIRCH_SIGN);
+		signs.add(Material.BIRCH_WALL_SIGN);
+		signs.add(Material.CRIMSON_SIGN);//i realise it's not as usefull for non nether servers but meh. need to test for crashes
+		signs.add(Material.CRIMSON_WALL_SIGN );
+		signs.add(Material.DARK_OAK_SIGN);
+		signs.add(Material.DARK_OAK_WALL_SIGN);
+		signs.add(Material.JUNGLE_SIGN);
+		signs.add(Material.JUNGLE_WALL_SIGN);
+		//signs.add(Material.LEGACY_SIGN);?? is this the olden signs?
+		//signs.add(Material.LEGACY_POST_SIGN);
+		//signs.add(Material.LEGACY_WALL_SIGN);
+		signs.add(Material.OAK_SIGN);
+		signs.add(Material.OAK_WALL_SIGN);
+		signs.add(Material.SPRUCE_SIGN);
+		signs.add(Material.SPRUCE_WALL_SIGN);
+		signs.add(Material.WARPED_SIGN);//nether too
+		signs.add(Material.WARPED_WALL_SIGN);//nether three
 		
-		int colorCodeOfTheDudeWhoAsk =0;
+		//that stack up there is modifieable. the code below hopefully only works with SIGNS
 		
+		//since gonna do loops, might cache some values to make easier for cpu to breaTHE this.
+		Material blockPlaced = event.getBlockPlaced().getType();
 		
-		for(playerAssignedColors somde :playerColorList) 
+		//so if its not one of the signs wanna quick out of this.
+		// in other words, if it is one of the signs, then do the process
+		
+		for (Material MaybeSign : signs) 
 		{
-			if(somde.match(p)) 
+			if (blockPlaced == MaybeSign) 
 			{
-				colorCodeOfTheDudeWhoAsk= somde.color;
-				break;
-			}
+				TWwordSearchIn("sign text",event.getPlayer());//need actually make work, not placeholder
+				break; // found sign, happily doing the deed of the sign letter looking.
+			}	
 		}
 		
-		return colors[colorCodeOfTheDudeWhoAsk];
 	}
 	
-	private void playerSwitchChatColor(Player p) 
+	private void TWwordSearchIn(String text,Player whoToKick)
 	{
-		for(playerAssignedColors somde :playerColorList) 
+		
+		//so this was the 1st idea.
+		//try typing "breathe"
+		//the game has changed. will need to figure out different logic for checks
+		//kicks on "breathe"
+		//like it dont split the text into words, it dont care.
+		//but the code need to be accurate, otherwise i open a can of whoop-ass on these silly text lines
+		if (text.contains("the") || text.contains("The")) 
 		{
-			if(somde.match(p)) 
-			{
-				
-				somde.color++;
-				somde.color = somde.color%7;
-				break;
-			}
+			//maybe this is the sender?
+			whoToKick.kickPlayer("T-word");
+			System.out.println("[kickonTHE] yeeted "+whoToKick.getName());
+
 		}
+		
 	}
+
+	///TODO fix text search
+	///TODO find out where the sign's text is in the block metadata 
+	///TODO take a look at general warnings and stuff
+	///TODO edit signs list to work with 1.8.9 servers
 }
