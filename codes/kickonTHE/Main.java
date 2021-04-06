@@ -34,16 +34,10 @@ public class Main extends JavaPlugin implements Listener
 	@EventHandler (priority = EventPriority.HIGH)
 	private void chat(AsyncPlayerChatEvent event)
 	{
-		//I expect these things to be the actual messages
 		String msg = event.getMessage();
-
-		// i realise this little  process - looking for t-word is gonna be the same for both chat and signs, so... 
-	//function call
-		TWwordSearchIn(msg,event.getPlayer());//its written in the bottom
-		
+		TWwordSearchIn(msg,event.getPlayer());
 		//event.setCancelled(true); // message still gets sent with this line commented out
 	}
-	// so i think that was easy and could sometimes ki
 	
 	@EventHandler (priority = EventPriority.HIGH)
 	private void placedSign(BlockPlaceEvent event) 
@@ -56,8 +50,8 @@ public class Main extends JavaPlugin implements Listener
 		signs.add(Material.ACACIA_WALL_SIGN);
 		signs.add(Material.BIRCH_SIGN);
 		signs.add(Material.BIRCH_WALL_SIGN);
-		signs.add(Material.CRIMSON_SIGN);//i realise it's not as usefull for non nether servers but meh. need to test for crashes
-		signs.add(Material.CRIMSON_WALL_SIGN );
+		//signs.add(Material.CRIMSON_SIGN);//i realise it's not as usefull for non nether servers but meh. need to test for crashes
+		//signs.add(Material.CRIMSON_WALL_SIGN );
 		signs.add(Material.DARK_OAK_SIGN);
 		signs.add(Material.DARK_OAK_WALL_SIGN);
 		signs.add(Material.JUNGLE_SIGN);
@@ -69,8 +63,8 @@ public class Main extends JavaPlugin implements Listener
 		signs.add(Material.OAK_WALL_SIGN);
 		signs.add(Material.SPRUCE_SIGN);
 		signs.add(Material.SPRUCE_WALL_SIGN);
-		signs.add(Material.WARPED_SIGN);//nether too
-		signs.add(Material.WARPED_WALL_SIGN);//nether three
+		//signs.add(Material.WARPED_SIGN);//nether too
+		//signs.add(Material.WARPED_WALL_SIGN);//nether three
 		
 		//that stack up there is modifieable. the code below hopefully only works with SIGNS
 		
@@ -84,7 +78,17 @@ public class Main extends JavaPlugin implements Listener
 		{
 			if (blockPlaced == MaybeSign) 
 			{
-				TWwordSearchIn("sign text",event.getPlayer());//need actually make work, not placeholder
+				Sign sign = (Sign) event.getBlockPlaced();
+				
+				String[] signLines = sign.getLines();
+				StringBuffer sb = new StringBuffer();
+			      for(int i = 0; i < signLines.length; i++) {
+			         sb.append(signLines[i]);
+			         sb.append(" ");
+			      }
+				String singleLine = sb.toString();
+				System.out.println("[kickOnTHE] does this look like reasonable thing" + singleLine);
+				TWwordSearchIn(singleLine,event.getPlayer());
 				break; // found sign, happily doing the deed of the sign letter looking.
 			}	
 		}
@@ -93,25 +97,23 @@ public class Main extends JavaPlugin implements Listener
 	
 	private void TWwordSearchIn(String text,Player whoToKick)
 	{
+		String[] wordsList = text.split(" ");
 		
-		//so this was the 1st idea.
-		//try typing "breathe"
-		//the game has changed. will need to figure out different logic for checks
-		//kicks on "breathe"
-		//like it dont split the text into words, it dont care.
-		//but the code need to be accurate, otherwise i open a can of whoop-ass on these silly text lines
-		if (text.contains("the") || text.contains("The")) 
+		for(String word : wordsList ) 
 		{
-			//maybe this is the sender?
-			whoToKick.kickPlayer("T-word");
-			System.out.println("[kickonTHE] yeeted "+whoToKick.getName());
-
+			if (word =="the" || word == "The") 
+			{
+				whoToKick.kickPlayer("T-word");
+				System.out.println("[kickonTHE] yeeted "+whoToKick.getName());
+				break;
+			}
+			
 		}
+		
+		
 		
 	}
 
-	///TODO fix text search
-	///TODO find out where the sign's text is in the block metadata 
 	///TODO take a look at general warnings and stuff
 	///TODO edit signs list to work with 1.8.9 servers
 }
